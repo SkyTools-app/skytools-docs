@@ -1,0 +1,50 @@
+---
+title: Collections
+description: Get all SkyBlock collections
+---
+
+## GET /v1/collections
+
+Returns all SkyBlock collections and their tier requirements.
+
+**Cache:** 1 hour
+
+### Query Parameters
+
+None.
+
+### Example
+
+```bash
+curl https://api.skytools.app/v1/collections
+```
+
+```javascript
+const res = await fetch('https://api.skytools.app/v1/collections');
+const { data } = await res.json();
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "collections": {
+      "FARMING": {
+        "name": "Farming",
+        "items": {
+          "WHEAT": {
+            "name": "Wheat",
+            "maxTiers": 9,
+            "tiers": [
+              { "tier": 1, "amountRequired": 50, "unlocks": ["Wheat Minion I"] }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "meta": { "cached": true, "api_version": "v1" }
+}
+```

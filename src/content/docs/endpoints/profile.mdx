@@ -1,0 +1,56 @@
+---
+title: Player Profile
+description: Look up a player's SkyBlock profiles
+---
+
+## GET /v1/profile/:username
+
+Returns all SkyBlock profiles for a Minecraft player.
+
+**Cache:** 15 minutes
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `username` | string | Minecraft username (1–16 chars, alphanumeric + underscore) |
+
+### Example
+
+```bash
+curl https://api.skytools.app/v1/profile/Technoblade
+```
+
+```javascript
+const res = await fetch('https://api.skytools.app/v1/profile/Technoblade');
+const { data } = await res.json();
+console.log(`UUID: ${data.uuid}`);
+console.log(`Profiles: ${data.profiles.length}`);
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "uuid": "b876ec32e396476ba1158438d83c67d4",
+    "username": "Technoblade",
+    "profiles": [
+      {
+        "profile_id": "...",
+        "cute_name": "Strawberry",
+        "selected": true,
+        "members": { ... }
+      }
+    ]
+  },
+  "meta": { "cached": false, "api_version": "v1" }
+}
+```
+
+### Errors
+
+| Code | Status | When |
+|---|---|---|
+| `BAD_REQUEST` | 400 | Invalid username format |

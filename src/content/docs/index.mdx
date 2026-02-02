@@ -1,0 +1,83 @@
+---
+title: SkyTools API
+description: Developer documentation for the SkyTools Hypixel SkyBlock API
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+The SkyTools API provides real-time and historical data for Hypixel SkyBlock, including bazaar prices, auctions, player profiles, and more.
+
+**Base URL:** `https://api.skytools.app/v1`
+
+## Quick Start
+
+All API requests require an API key. You need an active **Starter** ($5.99/mo) or **Pro** ($9.99/mo) subscription to create one.
+
+1. Subscribe at [skytools.app](https://skytools.app)
+2. Create an API key in the [Developer Dashboard](/dashboard)
+3. Include it in your requests:
+
+```bash
+curl -H "X-API-Key: sk_your_key_here" https://api.skytools.app/v1/bazaar?mode=list
+```
+
+```javascript
+const res = await fetch('https://api.skytools.app/v1/bazaar?mode=list', {
+  headers: { 'X-API-Key': 'sk_your_key_here' },
+});
+const data = await res.json();
+```
+
+## Response Format
+
+All endpoints return a consistent JSON structure:
+
+```json
+// Success
+{
+  "success": true,
+  "data": { ... },
+  "meta": {
+    "cached": false,
+    "api_version": "v1"
+  }
+}
+
+// Error
+{
+  "success": false,
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "API key is required."
+  }
+}
+```
+
+## Available Endpoints
+
+<CardGrid>
+  <Card title="Bazaar" icon="star">
+    Real-time bazaar prices, flip opportunities, and price history.
+    [View docs](/endpoints/bazaar)
+  </Card>
+  <Card title="Auctions" icon="rocket">
+    Active auctions and lowest BIN prices across all items.
+    [View docs](/endpoints/auctions)
+  </Card>
+  <Card title="Player Profiles" icon="seti:todo">
+    Look up any player's SkyBlock profiles by username.
+    [View docs](/endpoints/profile)
+  </Card>
+  <Card title="Items & Collections" icon="list-format">
+    Complete item database and collection requirements.
+    [View docs](/endpoints/items)
+  </Card>
+  <Card title="Mayor & Elections" icon="information">
+    Current mayor, perks, and election history.
+    [View docs](/endpoints/mayor)
+  </Card>
+  <Card title="Fire Sales & Guilds" icon="puzzle">
+    Active fire sales, sale history, and guild lookups.
+    [View docs](/endpoints/fire-sales)
+  </Card>
+</CardGrid>

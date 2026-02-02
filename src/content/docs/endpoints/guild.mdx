@@ -1,0 +1,60 @@
+---
+title: Guild
+description: Look up a Hypixel guild
+---
+
+## GET /v1/guild
+
+Look up a Hypixel guild by name or by player username.
+
+**Cache:** 15 minutes
+
+### Query Parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `name` | string | Guild name (provide one of `name` or `player`) |
+| `player` | string | Player username to find their guild |
+
+One of `name` or `player` is required.
+
+### Examples
+
+```bash
+# By guild name
+curl "https://api.skytools.app/v1/guild?name=The+Bloodlust"
+
+# By player
+curl "https://api.skytools.app/v1/guild?player=Technoblade"
+```
+
+```javascript
+const res = await fetch(
+  'https://api.skytools.app/v1/guild?name=The+Bloodlust'
+);
+const { data } = await res.json();
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "guild": {
+      "name": "The Bloodlust",
+      "tag": "BLOOD",
+      "created": 1560000000000,
+      "members": [...],
+      "exp": 50000000
+    }
+  },
+  "meta": { "cached": false, "api_version": "v1" }
+}
+```
+
+### Errors
+
+| Code | Status | When |
+|---|---|---|
+| `BAD_REQUEST` | 400 | Neither `name` nor `player` provided |

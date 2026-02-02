@@ -1,0 +1,72 @@
+---
+title: Bazaar History
+description: Get historical bazaar price data
+---
+
+## GET /v1/bazaar/history
+
+Returns historical price snapshots for a bazaar item.
+
+**Cache:** 5 minutes
+
+### Query Parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `item_id` | string | — | **Required.** The bazaar item ID (e.g. `DIAMOND`) |
+| `range` | string | `24h` | Time range: `1h`, `24h`, `7d`, `30d`, `90d` |
+
+### Data Point Limits
+
+| Range | Max Points |
+|---|---|
+| `1h` | 100 |
+| `24h` | 288 |
+| `7d` | 500 |
+| `30d` | 720 |
+| `90d` | 1,000 |
+
+### Example
+
+```bash
+curl "https://api.skytools.app/v1/bazaar/history?item_id=DIAMOND&range=24h"
+```
+
+```javascript
+const res = await fetch(
+  'https://api.skytools.app/v1/bazaar/history?item_id=DIAMOND&range=24h'
+);
+const { data } = await res.json();
+console.log(data.history);
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "item_id": "DIAMOND",
+    "range": "24h",
+    "dataPoints": 288,
+    "history": [
+      {
+        "sell_price": 7.5,
+        "buy_price": 8.1,
+        "sell_volume": 1234567,
+        "buy_volume": 987654,
+        "spread": 0.6,
+        "spread_percent": 8.0,
+        "recorded_at": "2025-01-20T12:00:00Z"
+      }
+    ]
+  },
+  "meta": { "cached": true, "api_version": "v1" }
+}
+```
+
+### Errors
+
+| Code | Status | When |
+|---|---|---|
+| `BAD_REQUEST` | 400 | Missing `item_id` parameter |

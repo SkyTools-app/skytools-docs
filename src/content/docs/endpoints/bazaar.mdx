@@ -1,0 +1,136 @@
+---
+title: Bazaar
+description: Get real-time bazaar product data
+---
+
+## GET /v1/bazaar
+
+Returns bazaar product data from the Hypixel API. Supports multiple modes for different use cases.
+
+**Cache:** 5 seconds
+
+### Query Parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `mode` | string | `full` | One of: `full`, `list`, `item`, `flips` |
+| `id` | string | — | Item ID (required when `mode=item`) |
+| `limit` | integer | `20` | Max results for `mode=flips` (1–100) |
+
+### Modes
+
+#### `full` — All products with raw data
+
+```bash
+curl https://api.skytools.app/v1/bazaar?mode=full
+```
+
+```json
+{
+  "success": true,
+  "data": {
+    "lastUpdated": 1706000000000,
+    "products": {
+      "DIAMOND": {
+        "product_id": "DIAMOND",
+        "quick_status": {
+          "sellPrice": 7.5,
+          "buyPrice": 8.1,
+          "sellVolume": 1234567,
+          "buyVolume": 987654,
+          "sellMovingWeek": 50000000,
+          "buyMovingWeek": 45000000,
+          "sellOrders": 150,
+          "buyOrders": 200
+        }
+      }
+    }
+  },
+  "meta": { "cached": false, "api_version": "v1" }
+}
+```
+
+#### `list` — Item IDs only
+
+Returns a sorted list of all active bazaar item IDs (items with non-zero prices).
+
+```bash
+curl https://api.skytools.app/v1/bazaar?mode=list
+```
+
+```json
+{
+  "success": true,
+  "data": {
+    "count": 1200,
+    "items": [
+      { "id": "ABSOLUTE_ENDER_PEARL" },
+      { "id": "ACACIA_FENCE" }
+    ]
+  },
+  "meta": { "cached": false, "api_version": "v1" }
+}
+```
+
+#### `item` — Single item details
+
+Returns processed data for a single item with spread calculations.
+
+```bash
+curl "https://api.skytools.app/v1/bazaar?mode=item&id=DIAMOND"
+```
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "DIAMOND",
+    "sellPrice": 7.5,
+    "buyPrice": 8.1,
+    "sellVolume": 1234567,
+    "buyVolume": 987654,
+    "spread": 0.6,
+    "spreadPercent": 8.0,
+    "sellMovingWeek": 50000000,
+    "buyMovingWeek": 45000000
+  },
+  "meta": { "cached": false, "api_version": "v1" }
+}
+```
+
+#### `flips` — Top flip opportunities
+
+Returns items sorted by spread percentage. Filters for items with sell price >= 50,000 and volume >= 10,000.
+
+```bash
+curl "https://api.skytools.app/v1/bazaar?mode=flips&limit=5"
+```
+
+```json
+{
+  "success": true,
+  "data": {
+    "count": 5,
+    "items": [
+      {
+        "id": "EXAMPLE_ITEM",
+        "sellPrice": 100000,
+        "buyPrice": 120000,
+        "sellVolume": 50000,
+        "buyVolume": 45000,
+        "spread": 20000,
+        "spreadPercent": 20.0,
+        "sellMovingWeek": 5000000,
+        "buyMovingWeek": 4500000
+      }
+    ]
+  },
+  "meta": { "cached": false, "api_version": "v1" }
+}
+```
+
+### Errors
+
+| Code | Status | When |
+|---|---|---|
+| `NOT_FOUND` | 404 | `mode=item` with invalid `id` |

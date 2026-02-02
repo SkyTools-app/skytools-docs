@@ -1,0 +1,83 @@
+---
+title: Mayor
+description: Get current mayor and election history
+---
+
+## GET /v1/mayor
+
+Returns the current SkyBlock mayor and election data.
+
+**Cache:** 5 minutes
+
+### Query Parameters
+
+None.
+
+### Example
+
+```bash
+curl https://api.skytools.app/v1/mayor
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "mayor": {
+      "name": "Diana",
+      "key": "diana",
+      "perks": [
+        {
+          "name": "Lucky!",
+          "description": "Gain +25 Pet Luck"
+        }
+      ]
+    },
+    "current": { ... },
+    "election": { ... }
+  },
+  "meta": { "cached": false, "api_version": "v1" }
+}
+```
+
+---
+
+## GET /v1/mayor/history
+
+Returns past mayors from the database.
+
+**Cache:** 5 minutes
+
+### Query Parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `limit` | integer | `24` | Number of results (1–100) |
+
+### Example
+
+```bash
+curl "https://api.skytools.app/v1/mayor/history?limit=10"
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "history": [
+      {
+        "name": "Diana",
+        "key": "diana",
+        "perks": [...],
+        "started_at": "2025-01-01T00:00:00Z",
+        "ended_at": "2025-01-05T00:00:00Z"
+      }
+    ]
+  },
+  "meta": { "cached": true, "api_version": "v1" }
+}
+```

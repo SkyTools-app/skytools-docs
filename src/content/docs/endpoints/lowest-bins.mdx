@@ -1,0 +1,44 @@
+---
+title: Lowest BINs
+description: Get lowest BIN (Buy It Now) prices for all items
+---
+
+## GET /v1/auctions/lowest-bins
+
+Returns the lowest BIN price for every item currently on the auction house. Scans up to 20 pages of auctions.
+
+**Cache:** 5 minutes
+
+### Query Parameters
+
+None.
+
+### Example
+
+```bash
+curl https://api.skytools.app/v1/auctions/lowest-bins
+```
+
+```javascript
+const res = await fetch('https://api.skytools.app/v1/auctions/lowest-bins');
+const { data } = await res.json();
+console.log(data.lowestBins['Hyperion']);
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "lowestBins": {
+      "Hyperion": 900000000,
+      "Aspect of the Dragons": 15000000,
+      "Livid Dagger": 30000000
+    }
+  },
+  "meta": { "cached": true, "api_version": "v1" }
+}
+```
+
+The keys are item display names and the values are the lowest BIN price in coins.

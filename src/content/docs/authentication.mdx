@@ -1,0 +1,94 @@
+---
+title: Authentication
+description: How to authenticate with the SkyTools API
+---
+
+## API Key Required
+
+All API requests require a valid API key. Unauthenticated requests are rejected with a `401` error.
+
+### Requirements
+
+To get an API key you need:
+
+1. A SkyTools account
+2. An active **Starter** ($5.99/mo) or **Pro** ($9.99/mo) subscription
+
+| | Starter | Pro |
+|---|---|---|
+| API access | Yes | Yes |
+| Rate limit | 120 req/min | 300 req/min |
+| Price | $5.99/mo | $9.99/mo |
+
+## Getting an API Key
+
+1. Subscribe to a paid plan at [skytools.app](https://skytools.app)
+2. Go to the [Developer Dashboard](/dashboard)
+3. Sign in with your SkyTools account (email, Google, or Discord)
+4. Click **Create API Key**
+5. Copy your key (starts with `sk_`)
+
+## Using Your Key
+
+Pass your API key via the `X-API-Key` header or as a Bearer token:
+
+```bash
+# X-API-Key header
+curl -H "X-API-Key: sk_your_key_here" https://api.skytools.app/v1/bazaar
+
+# Bearer token
+curl -H "Authorization: Bearer sk_your_key_here" https://api.skytools.app/v1/bazaar
+```
+
+```javascript
+const res = await fetch('https://api.skytools.app/v1/bazaar', {
+  headers: {
+    'X-API-Key': 'sk_your_key_here',
+  },
+});
+```
+
+## Error Responses
+
+### No key provided
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "API key is required. Get one at https://developers.skytools.app/dashboard"
+  }
+}
+```
+
+### Invalid or revoked key
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "Invalid or revoked API key."
+  }
+}
+```
+
+### No active paid subscription
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "FORBIDDEN",
+    "message": "An active paid subscription (Starter or Pro) is required to use the API."
+  }
+}
+```
+
+## Key Security
+
+- Keep your API key secret. Do not commit it to source control.
+- If a key is compromised, revoke it in the [Dashboard](/dashboard) and create a new one.
+- Keys can be renamed and revoked at any time.
+- If your subscription expires, existing keys will stop working until you resubscribe.

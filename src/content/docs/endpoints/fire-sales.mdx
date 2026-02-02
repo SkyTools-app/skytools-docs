@@ -1,0 +1,79 @@
+---
+title: Fire Sales
+description: Get active and historical fire sales
+---
+
+## GET /v1/fire-sales
+
+Returns currently active fire sales.
+
+**Cache:** 1 minute
+
+### Query Parameters
+
+None.
+
+### Example
+
+```bash
+curl https://api.skytools.app/v1/fire-sales
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "sales": [
+      {
+        "item_id": "PET_SKIN_DRAGON_NEON_BLUE",
+        "start": 1706000000000,
+        "end": 1706100000000,
+        "amount": 200,
+        "price": 800
+      }
+    ]
+  },
+  "meta": { "cached": false, "api_version": "v1" }
+}
+```
+
+---
+
+## GET /v1/fire-sales/history
+
+Returns past fire sales from the database.
+
+**Cache:** 5 minutes
+
+### Query Parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `limit` | integer | `50` | Number of results (1–200) |
+
+### Example
+
+```bash
+curl "https://api.skytools.app/v1/fire-sales/history?limit=20"
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "history": [
+      {
+        "item_id": "PET_SKIN_DRAGON_NEON_BLUE",
+        "amount": 200,
+        "price": 800,
+        "recorded_at": "2025-01-15T12:00:00Z"
+      }
+    ]
+  },
+  "meta": { "cached": true, "api_version": "v1" }
+}
+```

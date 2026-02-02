@@ -1,0 +1,91 @@
+---
+title: Error Codes
+description: Error codes and responses from the SkyTools API
+---
+
+## Error Response Format
+
+All errors follow this structure:
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human-readable description"
+  }
+}
+```
+
+## Error Codes
+
+| Code | HTTP Status | Description |
+|---|---|---|
+| `UNAUTHORIZED` | 401 | Missing, invalid, or revoked API key |
+| `FORBIDDEN` | 403 | Valid key but no active paid subscription |
+| `BAD_REQUEST` | 400 | Missing or invalid parameters |
+| `NOT_FOUND` | 404 | Resource or route not found |
+| `RATE_LIMITED` | 429 | Rate limit exceeded |
+| `INTERNAL_ERROR` | 500 | Server error — try again later |
+
+## Common Errors
+
+### No API key
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "API key is required. Get one at https://developers.skytools.app/dashboard"
+  }
+}
+```
+
+### Invalid API key
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "Invalid or revoked API key."
+  }
+}
+```
+
+### No paid subscription
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "FORBIDDEN",
+    "message": "An active paid subscription (Starter or Pro) is required to use the API. Subscribe at https://skytools.app"
+  }
+}
+```
+
+### Missing required parameter
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "BAD_REQUEST",
+    "message": "item_id parameter is required"
+  }
+}
+```
+
+### Route not found
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Route GET /v1/unknown not found. See GET / for available endpoints."
+  }
+}
+```

@@ -1,0 +1,11 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import DashboardApp from '../components/dashboard/DashboardApp';
+---
+
+<StarlightPage
+  frontmatter={{ title: 'Developer Dashboard', description: 'Manage your API keys and view usage stats' }}
+  headings={[]}
+>
+  <DashboardApp client:only="react" />
+</StarlightPage>

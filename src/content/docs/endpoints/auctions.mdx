@@ -1,0 +1,56 @@
+---
+title: Auctions
+description: Get active Hypixel SkyBlock auctions
+---
+
+## GET /v1/auctions
+
+Returns a page of active auctions from the Hypixel API.
+
+**Cache:** 30 seconds
+
+### Query Parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `page` | integer | `0` | Page number (0-indexed) |
+
+### Example
+
+```bash
+curl "https://api.skytools.app/v1/auctions?page=0"
+```
+
+```javascript
+const res = await fetch('https://api.skytools.app/v1/auctions?page=0');
+const { data } = await res.json();
+console.log(`Total pages: ${data.totalPages}`);
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "page": 0,
+    "totalPages": 50,
+    "totalAuctions": 50000,
+    "lastUpdated": 1706000000000,
+    "auctions": [
+      {
+        "uuid": "abc123",
+        "auctioneer": "player_uuid",
+        "item_name": "Hyperion",
+        "item_lore": "...",
+        "starting_bid": 900000000,
+        "highest_bid_amount": 950000000,
+        "bin": false,
+        "start": 1706000000000,
+        "end": 1706100000000
+      }
+    ]
+  },
+  "meta": { "cached": false, "api_version": "v1" }
+}
+```

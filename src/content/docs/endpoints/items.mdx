@@ -1,0 +1,44 @@
+---
+title: Items
+description: Get all SkyBlock items
+---
+
+## GET /v1/items
+
+Returns the complete list of Hypixel SkyBlock items.
+
+**Cache:** 1 hour
+
+### Query Parameters
+
+None.
+
+### Example
+
+```bash
+curl https://api.skytools.app/v1/items
+```
+
+```javascript
+const res = await fetch('https://api.skytools.app/v1/items');
+const { data } = await res.json();
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "DIAMOND_SWORD",
+        "name": "Diamond Sword",
+        "material": "DIAMOND_SWORD",
+        "tier": "COMMON"
+      }
+    ]
+  },
+  "meta": { "cached": true, "api_version": "v1" }
+}
+```
