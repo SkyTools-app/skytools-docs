@@ -1,11 +1,15 @@
 ---
 title: Mayor
-description: Get current mayor and election history
+description: Current SkyBlock mayor, perks, and election history
+sidebar:
+  order: 8
 ---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 ## GET /v1/mayor
 
-Returns the current SkyBlock mayor and election data.
+Returns the current SkyBlock mayor, their perks, and active election data.
 
 **Cache:** 5 minutes
 
@@ -13,11 +17,40 @@ Returns the current SkyBlock mayor and election data.
 
 None.
 
-### Example
+### Examples
 
+<Tabs>
+  <TabItem label="cURL">
 ```bash
-curl https://api.skytools.app/v1/mayor
+curl -H "X-API-Key: sk_your_key_here" \
+  "https://api.skytools.app/v1/mayor"
 ```
+  </TabItem>
+  <TabItem label="JavaScript">
+```javascript
+const response = await fetch("https://api.skytools.app/v1/mayor", {
+  headers: { "X-API-Key": "sk_your_key_here" },
+});
+const { data } = await response.json();
+console.log(`Current mayor: ${data.mayor.name}`);
+data.mayor.perks.forEach((perk) => console.log(`  - ${perk.name}: ${perk.description}`));
+```
+  </TabItem>
+  <TabItem label="Python">
+```python
+import requests
+
+response = requests.get(
+    "https://api.skytools.app/v1/mayor",
+    headers={"X-API-Key": "sk_your_key_here"},
+)
+mayor = response.json()["data"]["mayor"]
+print(f"Current mayor: {mayor['name']}")
+for perk in mayor["perks"]:
+    print(f"  - {perk['name']}: {perk['description']}")
+```
+  </TabItem>
+</Tabs>
 
 ### Response
 
@@ -32,6 +65,10 @@ curl https://api.skytools.app/v1/mayor
         {
           "name": "Lucky!",
           "description": "Gain +25 Pet Luck"
+        },
+        {
+          "name": "Mythological Ritual",
+          "description": "Mayor Diana grants the ability to use a Griffin Pet..."
         }
       ]
     },
@@ -42,11 +79,21 @@ curl https://api.skytools.app/v1/mayor
 }
 ```
 
+| Field | Type | Description |
+|---|---|---|
+| `mayor.name` | string | Mayor's display name |
+| `mayor.key` | string | Internal mayor key |
+| `mayor.perks` | array | Active perks for this mayor |
+| `mayor.perks[].name` | string | Perk display name |
+| `mayor.perks[].description` | string | Perk effect description |
+| `current` | object | Current election cycle data |
+| `election` | object | Election candidate and vote data |
+
 ---
 
 ## GET /v1/mayor/history
 
-Returns past mayors from the database.
+Returns past mayors from the database, ordered by most recent first.
 
 **Cache:** 5 minutes
 
@@ -56,11 +103,28 @@ Returns past mayors from the database.
 |---|---|---|---|
 | `limit` | integer | `24` | Number of results (1–100) |
 
-### Example
+### Examples
 
+<Tabs>
+  <TabItem label="cURL">
 ```bash
-curl "https://api.skytools.app/v1/mayor/history?limit=10"
+curl -H "X-API-Key: sk_your_key_here" \
+  "https://api.skytools.app/v1/mayor/history?limit=10"
 ```
+  </TabItem>
+  <TabItem label="JavaScript">
+```javascript
+const response = await fetch(
+  "https://api.skytools.app/v1/mayor/history?limit=10",
+  { headers: { "X-API-Key": "sk_your_key_here" } }
+);
+const { data } = await response.json();
+data.history.forEach((mayor) => {
+  console.log(`${mayor.name}: ${mayor.started_at} — ${mayor.ended_at}`);
+});
+```
+  </TabItem>
+</Tabs>
 
 ### Response
 
@@ -72,12 +136,22 @@ curl "https://api.skytools.app/v1/mayor/history?limit=10"
       {
         "name": "Diana",
         "key": "diana",
-        "perks": [...],
-        "started_at": "2025-01-01T00:00:00Z",
-        "ended_at": "2025-01-05T00:00:00Z"
+        "perks": [
+          { "name": "Lucky!", "description": "Gain +25 Pet Luck" }
+        ],
+        "started_at": "2026-02-01T00:00:00Z",
+        "ended_at": "2026-02-05T00:00:00Z"
       }
     ]
   },
   "meta": { "cached": true, "api_version": "v1" }
 }
 ```
+
+| Field | Type | Description |
+|---|---|---|
+| `history[].name` | string | Mayor name |
+| `history[].key` | string | Internal mayor key |
+| `history[].perks` | array | Perks that were active during their term |
+| `history[].started_at` | string | ISO 8601 term start timestamp |
+| `history[].ended_at` | string | ISO 8601 term end timestamp |

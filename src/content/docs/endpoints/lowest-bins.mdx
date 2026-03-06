@@ -1,11 +1,15 @@
 ---
 title: Lowest BINs
-description: Get lowest BIN (Buy It Now) prices for all items
+description: Lowest Buy It Now prices for all auction house items
+sidebar:
+  order: 4
 ---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 ## GET /v1/auctions/lowest-bins
 
-Returns the lowest BIN price for every item currently on the auction house. Scans up to 20 pages of auctions.
+Returns the lowest BIN (Buy It Now) price for every item currently listed on the auction house. Scans up to 20 pages of auctions to find the cheapest listing for each item.
 
 **Cache:** 5 minutes
 
@@ -13,17 +17,42 @@ Returns the lowest BIN price for every item currently on the auction house. Scan
 
 None.
 
-### Example
+### Examples
 
+<Tabs>
+  <TabItem label="cURL">
 ```bash
-curl https://api.skytools.app/v1/auctions/lowest-bins
+curl -H "X-API-Key: sk_your_key_here" \
+  "https://api.skytools.app/v1/auctions/lowest-bins"
 ```
-
+  </TabItem>
+  <TabItem label="JavaScript">
 ```javascript
-const res = await fetch('https://api.skytools.app/v1/auctions/lowest-bins');
-const { data } = await res.json();
-console.log(data.lowestBins['Hyperion']);
+const response = await fetch("https://api.skytools.app/v1/auctions/lowest-bins", {
+  headers: { "X-API-Key": "sk_your_key_here" },
+});
+const { data } = await response.json();
+
+// Look up a specific item
+const hyperionPrice = data.lowestBins["Hyperion"];
+console.log(`Cheapest Hyperion: ${hyperionPrice.toLocaleString()} coins`);
 ```
+  </TabItem>
+  <TabItem label="Python">
+```python
+import requests
+
+response = requests.get(
+    "https://api.skytools.app/v1/auctions/lowest-bins",
+    headers={"X-API-Key": "sk_your_key_here"},
+)
+lowest_bins = response.json()["data"]["lowestBins"]
+
+hyperion_price = lowest_bins.get("Hyperion", "Not listed")
+print(f"Cheapest Hyperion: {hyperion_price:,} coins")
+```
+  </TabItem>
+</Tabs>
 
 ### Response
 
@@ -34,11 +63,16 @@ console.log(data.lowestBins['Hyperion']);
     "lowestBins": {
       "Hyperion": 900000000,
       "Aspect of the Dragons": 15000000,
-      "Livid Dagger": 30000000
+      "Livid Dagger": 30000000,
+      "Necron's Handle": 450000000
     }
   },
   "meta": { "cached": true, "api_version": "v1" }
 }
 ```
 
-The keys are item display names and the values are the lowest BIN price in coins.
+| Field | Type | Description |
+|---|---|---|
+| `lowestBins` | object | Map of item display name to lowest BIN price in coins |
+
+Keys are **item display names** (not internal IDs). Values are the lowest BIN price in coins as an integer.

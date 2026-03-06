@@ -7,6 +7,24 @@ export default defineConfig({
     starlight({
       title: 'SkyTools API',
       description: 'Developer documentation for the SkyTools Hypixel SkyBlock API',
+      customCss: ['./src/styles/custom.css'],
+      head: [
+        {
+          tag: 'link',
+          attrs: {
+            rel: 'preconnect',
+            href: 'https://fonts.googleapis.com',
+          },
+        },
+        {
+          tag: 'link',
+          attrs: {
+            rel: 'preconnect',
+            href: 'https://fonts.gstatic.com',
+            crossorigin: '',
+          },
+        },
+      ],
       sidebar: [
         {
           label: 'Getting Started',

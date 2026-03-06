@@ -1,7 +1,15 @@
 ---
-title: Player Profile
-description: Look up a player's SkyBlock profiles
+title: Player Profiles
+description: Player profiles, net worth, inventories, and museum data
+sidebar:
+  order: 5
 ---
+
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+<Aside type="caution">
+Profile endpoints rely on an upstream bridge for UUID resolution and data processing. If it times out, the API may return stale cached data (up to 30 minutes old). Check `meta.stale` to detect this.
+</Aside>
 
 ## GET /v1/profile/:username
 
@@ -13,20 +21,40 @@ Returns all SkyBlock profiles for a Minecraft player.
 
 | Parameter | Type | Description |
 |---|---|---|
-| `username` | string | Minecraft username (1–16 chars, alphanumeric + underscore) |
+| `username` | string | Minecraft username (1–16 chars, alphanumeric and underscores only) |
 
-### Example
+### Examples
 
+<Tabs>
+  <TabItem label="cURL">
 ```bash
-curl https://api.skytools.app/v1/profile/Technoblade
+curl -H "X-API-Key: sk_your_key_here" \
+  "https://api.skytools.app/v1/profile/Refraction"
 ```
-
+  </TabItem>
+  <TabItem label="JavaScript">
 ```javascript
-const res = await fetch('https://api.skytools.app/v1/profile/Technoblade');
-const { data } = await res.json();
+const response = await fetch("https://api.skytools.app/v1/profile/Refraction", {
+  headers: { "X-API-Key": "sk_your_key_here" },
+});
+const { data } = await response.json();
 console.log(`UUID: ${data.uuid}`);
 console.log(`Profiles: ${data.profiles.length}`);
 ```
+  </TabItem>
+  <TabItem label="Python">
+```python
+import requests
+
+response = requests.get(
+    "https://api.skytools.app/v1/profile/Refraction",
+    headers={"X-API-Key": "sk_your_key_here"},
+)
+data = response.json()["data"]
+print(f"UUID: {data['uuid']}, Profiles: {len(data['profiles'])}")
+```
+  </TabItem>
+</Tabs>
 
 ### Response
 
@@ -35,10 +63,10 @@ console.log(`Profiles: ${data.profiles.length}`);
   "success": true,
   "data": {
     "uuid": "b876ec32e396476ba1158438d83c67d4",
-    "username": "Technoblade",
+    "username": "Refraction",
     "profiles": [
       {
-        "profile_id": "...",
+        "profile_id": "a1b2c3d4e5f6",
         "cute_name": "Strawberry",
         "selected": true,
         "members": { ... }
@@ -49,8 +77,148 @@ console.log(`Profiles: ${data.profiles.length}`);
 }
 ```
 
-### Errors
-
-| Code | Status | When |
+| Field | Type | Description |
 |---|---|---|
-| `BAD_REQUEST` | 400 | Invalid username format |
+| `uuid` | string | Player's Minecraft UUID |
+| `username` | string | Player's current username |
+| `profiles` | array | All SkyBlock profiles |
+| `profiles[].profile_id` | string | Unique profile ID |
+| `profiles[].cute_name` | string | Profile fruit name (e.g. "Strawberry") |
+| `profiles[].selected` | boolean | `true` if this is the player's active profile |
+| `profiles[].members` | object | Profile member data (keyed by UUID) |
+
+---
+
+## GET /v1/profile/:username/networth
+
+Returns a full net worth breakdown for a player's SkyBlock profile.
+
+**Cache:** 5 minutes
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `username` | string | Minecraft username |
+
+### Query Parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `profile_id` | string | — | Specific profile ID. If omitted, uses the selected profile. |
+
+### Example
+
+```bash
+curl -H "X-API-Key: sk_your_key_here" \
+  "https://api.skytools.app/v1/profile/Refraction/networth"
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "uuid": "b876ec32e396476ba1158438d83c67d4",
+    "username": "Refraction",
+    "networth": { ... }
+  },
+  "meta": { "cached": false, "api_version": "v1" }
+}
+```
+
+<Aside>Net worth is computed server-side using current bazaar/auction prices. The breakdown includes categories like armor, inventory, pets, accessories, storage, etc.</Aside>
+
+---
+
+## GET /v1/profile/:username/items
+
+Returns parsed inventory items for a player's SkyBlock profile.
+
+**Cache:** 5 minutes
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `username` | string | Minecraft username |
+
+### Query Parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `profile_id` | string | — | Specific profile ID. If omitted, uses the selected profile. |
+
+### Example
+
+```bash
+curl -H "X-API-Key: sk_your_key_here" \
+  "https://api.skytools.app/v1/profile/Refraction/items"
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "uuid": "b876ec32e396476ba1158438d83c67d4",
+    "username": "Refraction",
+    "items": { ... }
+  },
+  "meta": { "cached": false, "api_version": "v1" }
+}
+```
+
+---
+
+## GET /v1/profile/:username/museum
+
+Returns museum data for a player's SkyBlock profile.
+
+**Cache:** 15 minutes
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `username` | string | Minecraft username |
+
+### Query Parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `profile_id` | string | — | Specific profile ID. If omitted, uses the selected profile. |
+
+### Example
+
+```bash
+curl -H "X-API-Key: sk_your_key_here" \
+  "https://api.skytools.app/v1/profile/Refraction/museum"
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "uuid": "b876ec32e396476ba1158438d83c67d4",
+    "username": "Refraction",
+    "museum": { ... }
+  },
+  "meta": { "cached": false, "api_version": "v1" }
+}
+```
+
+---
+
+### Errors (All Profile Endpoints)
+
+| Code | HTTP Status | When |
+|---|---|---|
+| `BAD_REQUEST` | 400 | Invalid username format (must be 1–16 chars, `[a-zA-Z0-9_]`) |
+| `NOT_FOUND` | 404 | Player not found on Mojang/Hypixel |
+| `UPSTREAM_ERROR` | 502 | Hypixel or Mojang API returned an error |
+| `TIMEOUT` | 503 | Upstream timed out and no cached data available |

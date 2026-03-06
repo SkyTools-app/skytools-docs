@@ -3,9 +3,11 @@ title: Rate Limits
 description: Rate limiting details for the SkyTools API
 ---
 
-## Limits
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
 
-Requests are rate-limited per 60-second sliding window, based on your subscription tier.
+## Limits by Tier
+
+Requests are rate-limited using a **60-second sliding window**, keyed to your API key.
 
 | Tier | Limit | Price |
 |---|---|---|
@@ -13,21 +15,19 @@ Requests are rate-limited per 60-second sliding window, based on your subscripti
 | Starter | 120 requests/min | $5.99/mo |
 | Pro | 300 requests/min | $9.99/mo |
 
-All users with a SkyTools account can create an API key. See [Authentication](/authentication/) for setup.
-
 ## Response Headers
 
-Every response includes rate limit headers:
+Every API response includes rate limit headers:
 
-| Header | Description |
-|---|---|
-| `X-RateLimit-Limit` | Maximum requests allowed in the window |
-| `X-RateLimit-Remaining` | Requests remaining in the current window |
-| `Retry-After` | Seconds until the window resets (only on 429) |
+| Header | Description | Example |
+|---|---|---|
+| `X-RateLimit-Limit` | Max requests allowed per window | `300` |
+| `X-RateLimit-Remaining` | Requests remaining in current window | `298` |
+| `Retry-After` | Seconds until window resets (**only on 429**) | `42` |
 
 ## Rate Limit Exceeded
 
-When you exceed the limit, you'll receive a `429` response:
+When you exceed the limit, the API returns `429 Too Many Requests`:
 
 ```json
 {
@@ -39,10 +39,58 @@ When you exceed the limit, you'll receive a `429` response:
 }
 ```
 
-Wait for the `Retry-After` duration before making more requests.
+### Retry Strategy
 
-## Tips
+<Tabs>
+  <TabItem label="JavaScript">
+```javascript
+async function fetchWithRetry(url, headers, maxRetries = 3) {
+  for (let i = 0; i < maxRetries; i++) {
+    const response = await fetch(url, { headers });
 
-- Use the `meta.cached` field to know if data was served from cache — cached responses still count toward your quota, but you can avoid unnecessary polling.
-- For bazaar data that updates every 5 seconds, polling more frequently than that wastes your quota.
-- Batch your needs: use `mode=full` to get all bazaar data in one request instead of fetching items individually.
+    if (response.status === 429) {
+      const retryAfter = parseInt(response.headers.get("Retry-After") || "60");
+      await new Promise((r) => setTimeout(r, retryAfter * 1000));
+      continue;
+    }
+
+    return response;
+  }
+  throw new Error("Max retries exceeded");
+}
+```
+  </TabItem>
+  <TabItem label="Python">
+```python
+import time
+import requests
+
+def fetch_with_retry(url, headers, max_retries=3):
+    for _ in range(max_retries):
+        response = requests.get(url, headers=headers)
+
+        if response.status_code == 429:
+            retry_after = int(response.headers.get("Retry-After", "60"))
+            time.sleep(retry_after)
+            continue
+
+        return response
+
+    raise Exception("Max retries exceeded")
+```
+  </TabItem>
+</Tabs>
+
+## Optimization Tips
+
+<Aside type="tip">Cached responses still count toward your quota — optimize on your side to avoid redundant requests.</Aside>
+
+- **Batch requests.** Use `mode=full` to get all bazaar data in a single call instead of fetching items one at a time.
+- **Respect update intervals.** Bazaar data refreshes every ~5 seconds. Polling faster than that wastes quota with no new data.
+- **Cache locally.** Check the `meta.cached` field to understand freshness and implement client-side caching.
+- **Use the right mode.** If you only need item IDs, use `mode=list` instead of `mode=full`.
+- **Monitor headers.** Check `X-RateLimit-Remaining` to proactively throttle before hitting limits.
+
+## Usage Tracking
+
+Every API request is logged. View your usage breakdown by endpoint and time period in the [Developer Dashboard](/dashboard).

@@ -1,36 +1,43 @@
 ---
 title: Error Codes
-description: Error codes and responses from the SkyTools API
+description: Complete error reference for the SkyTools API
 ---
 
-## Error Response Format
+import { Aside } from '@astrojs/starlight/components';
 
-All errors follow this structure:
+## Error Format
+
+All errors return a consistent structure:
 
 ```json
 {
   "success": false,
   "error": {
     "code": "ERROR_CODE",
-    "message": "Human-readable description"
+    "message": "Human-readable description of what went wrong"
   }
 }
 ```
 
-## Error Codes
+## Error Reference
 
 | Code | HTTP Status | Description |
 |---|---|---|
+| `BAD_REQUEST` | 400 | Missing or invalid query/path parameters |
+| `VALIDATION` | 400 | Request body failed validation (wrong types, missing required fields) |
 | `UNAUTHORIZED` | 401 | Missing, invalid, or revoked API key |
 | `FORBIDDEN` | 403 | Valid key but insufficient permissions |
-| `BAD_REQUEST` | 400 | Missing or invalid parameters |
-| `NOT_FOUND` | 404 | Resource or route not found |
-| `RATE_LIMITED` | 429 | Rate limit exceeded |
-| `INTERNAL_ERROR` | 500 | Server error — try again later |
+| `LIMIT_REACHED` | 403 | Tier feature limit reached (e.g. max portfolio entries) |
+| `NOT_FOUND` | 404 | Resource not found or route doesn't exist |
+| `RATE_LIMITED` | 429 | Rate limit exceeded — check `Retry-After` header |
+| `INTERNAL_ERROR` | 500 | Unexpected server error |
+| `DB_ERROR` | 500 | Database operation failed |
+| `UPSTREAM_ERROR` | 502 | Upstream API (Hypixel or Mojang) returned an error |
+| `TIMEOUT` | 503 | Upstream service timed out |
 
 ## Common Errors
 
-### No API key
+### Missing API Key
 
 ```json
 {
@@ -42,7 +49,9 @@ All errors follow this structure:
 }
 ```
 
-### Invalid API key
+**Fix:** Include your API key via `X-API-Key` or `Authorization: Bearer` header. See [Authentication](/authentication/).
+
+### Invalid API Key
 
 ```json
 {
@@ -54,7 +63,9 @@ All errors follow this structure:
 }
 ```
 
-### Missing required parameter
+**Fix:** Verify your key starts with `sk_` and hasn't been revoked. Generate a new key in the [Dashboard](/dashboard).
+
+### Missing Required Parameter
 
 ```json
 {
@@ -66,7 +77,23 @@ All errors follow this structure:
 }
 ```
 
-### Route not found
+**Fix:** Check the endpoint documentation for required parameters.
+
+### Rate Limit Exceeded
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "RATE_LIMITED",
+    "message": "Rate limit exceeded. Max 60 requests per minute."
+  }
+}
+```
+
+**Fix:** Wait for the duration in the `Retry-After` header. See [Rate Limits](/rate-limits/) for optimization tips.
+
+### Route Not Found
 
 ```json
 {
@@ -77,3 +104,52 @@ All errors follow this structure:
   }
 }
 ```
+
+**Fix:** Verify the endpoint URL against the [API reference](/endpoints/bazaar/).
+
+### Upstream Timeout (Stale Cache)
+
+<Aside type="caution">
+When an upstream service times out, the API may return stale cached data (up to 30 minutes old) instead of an error. Always check `meta.stale` to detect this.
+</Aside>
+
+If stale cached data is available, the response succeeds with extra metadata:
+
+```json
+{
+  "success": true,
+  "data": { ... },
+  "meta": {
+    "cached": true,
+    "api_version": "v1",
+    "stale": true,
+    "age_seconds": 245
+  }
+}
+```
+
+If no cached data is available, you'll receive a `503`:
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "TIMEOUT",
+    "message": "Upstream service timed out. Please try again."
+  }
+}
+```
+
+### Tier Limit Reached
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "LIMIT_REACHED",
+    "message": "Portfolio limit reached for your tier (15). Upgrade for more."
+  }
+}
+```
+
+**Fix:** Upgrade your subscription or remove existing entries.

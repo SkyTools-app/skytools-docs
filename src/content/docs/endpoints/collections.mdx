@@ -1,11 +1,15 @@
 ---
 title: Collections
-description: Get all SkyBlock collections
+description: SkyBlock collection categories, tiers, and unlock requirements
+sidebar:
+  order: 7
 ---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 ## GET /v1/collections
 
-Returns all SkyBlock collections and their tier requirements.
+Returns all SkyBlock collections organized by category, with tier requirements and unlock rewards.
 
 **Cache:** 1 hour
 
@@ -13,16 +17,43 @@ Returns all SkyBlock collections and their tier requirements.
 
 None.
 
-### Example
+### Examples
 
+<Tabs>
+  <TabItem label="cURL">
 ```bash
-curl https://api.skytools.app/v1/collections
+curl -H "X-API-Key: sk_your_key_here" \
+  "https://api.skytools.app/v1/collections"
 ```
-
+  </TabItem>
+  <TabItem label="JavaScript">
 ```javascript
-const res = await fetch('https://api.skytools.app/v1/collections');
-const { data } = await res.json();
+const response = await fetch("https://api.skytools.app/v1/collections", {
+  headers: { "X-API-Key": "sk_your_key_here" },
+});
+const { data } = await response.json();
+
+// List all farming collection items
+const farming = data.collections["FARMING"];
+console.log(Object.keys(farming.items));
 ```
+  </TabItem>
+  <TabItem label="Python">
+```python
+import requests
+
+response = requests.get(
+    "https://api.skytools.app/v1/collections",
+    headers={"X-API-Key": "sk_your_key_here"},
+)
+collections = response.json()["data"]["collections"]
+
+# List farming categories
+for item_id, item in collections["FARMING"]["items"].items():
+    print(f"{item['name']}: {item['maxTiers']} tiers")
+```
+  </TabItem>
+</Tabs>
 
 ### Response
 
@@ -38,13 +69,30 @@ const { data } = await res.json();
             "name": "Wheat",
             "maxTiers": 9,
             "tiers": [
-              { "tier": 1, "amountRequired": 50, "unlocks": ["Wheat Minion I"] }
+              { "tier": 1, "amountRequired": 50, "unlocks": ["Wheat Minion I"] },
+              { "tier": 2, "amountRequired": 100, "unlocks": ["Enchanted Book (Harvesting V)"] }
             ]
           }
         }
-      }
+      },
+      "MINING": { ... },
+      "COMBAT": { ... },
+      "FORAGING": { ... },
+      "FISHING": { ... }
     }
   },
   "meta": { "cached": true, "api_version": "v1" }
 }
 ```
+
+| Field | Type | Description |
+|---|---|---|
+| `collections` | object | Map of category name to category data |
+| `collections[category].name` | string | Display name of the category |
+| `collections[category].items` | object | Map of item ID to collection data |
+| `items[id].name` | string | Display name |
+| `items[id].maxTiers` | integer | Total number of collection tiers |
+| `items[id].tiers` | array | Tier details |
+| `tiers[].tier` | integer | Tier number |
+| `tiers[].amountRequired` | integer | Items needed to reach this tier |
+| `tiers[].unlocks` | array | Recipes/rewards unlocked at this tier |

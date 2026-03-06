@@ -1,7 +1,11 @@
 ---
 title: Auctions
-description: Get active Hypixel SkyBlock auctions
+description: Get active Hypixel SkyBlock auction listings
+sidebar:
+  order: 3
 ---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 ## GET /v1/auctions
 
@@ -15,17 +19,38 @@ Returns a page of active auctions from the Hypixel API.
 |---|---|---|---|
 | `page` | integer | `0` | Page number (0-indexed) |
 
-### Example
+### Examples
 
+<Tabs>
+  <TabItem label="cURL">
 ```bash
-curl "https://api.skytools.app/v1/auctions?page=0"
+curl -H "X-API-Key: sk_your_key_here" \
+  "https://api.skytools.app/v1/auctions?page=0"
 ```
-
+  </TabItem>
+  <TabItem label="JavaScript">
 ```javascript
-const res = await fetch('https://api.skytools.app/v1/auctions?page=0');
-const { data } = await res.json();
-console.log(`Total pages: ${data.totalPages}`);
+const response = await fetch("https://api.skytools.app/v1/auctions?page=0", {
+  headers: { "X-API-Key": "sk_your_key_here" },
+});
+const { data } = await response.json();
+console.log(`Page ${data.page} of ${data.totalPages} (${data.totalAuctions} auctions)`);
 ```
+  </TabItem>
+  <TabItem label="Python">
+```python
+import requests
+
+response = requests.get(
+    "https://api.skytools.app/v1/auctions",
+    params={"page": 0},
+    headers={"X-API-Key": "sk_your_key_here"},
+)
+data = response.json()["data"]
+print(f"Page {data['page']} of {data['totalPages']}")
+```
+  </TabItem>
+</Tabs>
 
 ### Response
 
@@ -39,8 +64,8 @@ console.log(`Total pages: ${data.totalPages}`);
     "lastUpdated": 1706000000000,
     "auctions": [
       {
-        "uuid": "abc123",
-        "auctioneer": "player_uuid",
+        "uuid": "abc123def456",
+        "auctioneer": "b876ec32e396476ba1158438d83c67d4",
         "item_name": "Hyperion",
         "item_lore": "...",
         "starting_bid": 900000000,
@@ -54,3 +79,17 @@ console.log(`Total pages: ${data.totalPages}`);
   "meta": { "cached": false, "api_version": "v1" }
 }
 ```
+
+| Field | Type | Description |
+|---|---|---|
+| `page` | integer | Current page number |
+| `totalPages` | integer | Total pages available |
+| `totalAuctions` | integer | Total active auctions |
+| `lastUpdated` | number | Unix timestamp (ms) of last Hypixel API update |
+| `auctions[].uuid` | string | Unique auction ID |
+| `auctions[].auctioneer` | string | Seller's Minecraft UUID |
+| `auctions[].item_name` | string | Display name of the item |
+| `auctions[].starting_bid` | number | Starting bid in coins |
+| `auctions[].highest_bid_amount` | number | Current highest bid (0 if no bids) |
+| `auctions[].bin` | boolean | `true` if Buy It Now auction |
+| `auctions[].start` / `end` | number | Auction start/end timestamps (ms) |

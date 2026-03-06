@@ -52,7 +52,6 @@ export function UsageStats({ userId }: { userId: string }) {
 
     setTotalRequests(count || 0);
 
-    // Group by day
     const byDay: Record<string, number> = {};
     for (const row of data || []) {
       const day = new Date(row.created_at).toISOString().slice(0, 10);
@@ -68,41 +67,37 @@ export function UsageStats({ userId }: { userId: string }) {
     setLoading(false);
   }
 
-  if (loading) return <p>Loading usage stats...</p>;
+  if (loading) return <p className="dash-muted">Loading usage stats...</p>;
 
   const maxCount = Math.max(...dailyUsage.map((d) => d.count), 1);
 
   return (
     <div>
-      <h3 style={{ marginBottom: '1rem' }}>Usage Stats</h3>
+      <h3 className="dash-section-title">Usage</h3>
 
-      <div style={{ display: 'flex', gap: '2rem', marginBottom: '1.5rem' }}>
-        <div style={statBoxStyle}>
-          <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{totalRequests.toLocaleString()}</div>
-          <div style={{ color: '#888', fontSize: '0.75rem' }}>Requests (30d)</div>
+      <div className="dash-stat-row">
+        <div className="dash-stat-card">
+          <div className="dash-stat-value">{totalRequests.toLocaleString()}</div>
+          <div className="dash-stat-label">Requests (30 days)</div>
         </div>
-        <div style={statBoxStyle}>
-          <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{rateLimit}</div>
-          <div style={{ color: '#888', fontSize: '0.75rem' }}>Rate Limit (req/min) · {tierName}</div>
+        <div className="dash-stat-card">
+          <div className="dash-stat-value">{rateLimit}</div>
+          <div className="dash-stat-label">Rate limit (req/min) · {tierName}</div>
         </div>
       </div>
 
-      <h4 style={{ marginBottom: '0.5rem', fontSize: '0.875rem', color: '#888' }}>Last 7 Days</h4>
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', height: 120 }}>
+      <h4 className="dash-chart-title">Last 7 days</h4>
+      <div className="dash-chart">
         {dailyUsage.map((d) => (
-          <div key={d.date} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div style={{ fontSize: '0.625rem', color: '#888', marginBottom: 4 }}>
+          <div key={d.date} className="dash-chart-bar-col">
+            <div className="dash-chart-count">
               {d.count || ''}
             </div>
             <div
-              style={{
-                width: '100%',
-                height: `${Math.max((d.count / maxCount) * 80, 2)}px`,
-                backgroundColor: '#6366f1',
-                borderRadius: '2px 2px 0 0',
-              }}
+              className="dash-chart-bar"
+              style={{ height: `${Math.max((d.count / maxCount) * 80, 2)}px` }}
             />
-            <div style={{ fontSize: '0.625rem', color: '#666', marginTop: 4 }}>
+            <div className="dash-chart-label">
               {d.date.slice(5)}
             </div>
           </div>
@@ -111,10 +106,3 @@ export function UsageStats({ userId }: { userId: string }) {
     </div>
   );
 }
-
-const statBoxStyle: React.CSSProperties = {
-  padding: '1rem',
-  backgroundColor: '#1a1a2e',
-  borderRadius: '0.5rem',
-  flex: 1,
-};

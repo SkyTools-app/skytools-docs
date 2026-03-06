@@ -1,11 +1,15 @@
 ---
 title: Fire Sales
-description: Get active and historical fire sales
+description: Active and historical SkyBlock fire sales
+sidebar:
+  order: 9
 ---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 ## GET /v1/fire-sales
 
-Returns currently active fire sales.
+Returns currently active fire sales from the Hypixel API.
 
 **Cache:** 1 minute
 
@@ -13,11 +17,46 @@ Returns currently active fire sales.
 
 None.
 
-### Example
+### Examples
 
+<Tabs>
+  <TabItem label="cURL">
 ```bash
-curl https://api.skytools.app/v1/fire-sales
+curl -H "X-API-Key: sk_your_key_here" \
+  "https://api.skytools.app/v1/fire-sales"
 ```
+  </TabItem>
+  <TabItem label="JavaScript">
+```javascript
+const response = await fetch("https://api.skytools.app/v1/fire-sales", {
+  headers: { "X-API-Key": "sk_your_key_here" },
+});
+const { data } = await response.json();
+
+if (data.sales.length === 0) {
+  console.log("No active fire sales right now");
+} else {
+  data.sales.forEach((sale) => {
+    console.log(`${sale.item_id}: ${sale.amount} available at ${sale.price} gems`);
+  });
+}
+```
+  </TabItem>
+  <TabItem label="Python">
+```python
+import requests
+
+response = requests.get(
+    "https://api.skytools.app/v1/fire-sales",
+    headers={"X-API-Key": "sk_your_key_here"},
+)
+sales = response.json()["data"]["sales"]
+
+for sale in sales:
+    print(f"{sale['item_id']}: {sale['amount']} at {sale['price']} gems")
+```
+  </TabItem>
+</Tabs>
 
 ### Response
 
@@ -39,6 +78,14 @@ curl https://api.skytools.app/v1/fire-sales
 }
 ```
 
+| Field | Type | Description |
+|---|---|---|
+| `sales[].item_id` | string | Internal SkyBlock item ID |
+| `sales[].start` | number | Sale start timestamp (Unix ms) |
+| `sales[].end` | number | Sale end timestamp (Unix ms) |
+| `sales[].amount` | integer | Total quantity available |
+| `sales[].price` | integer | Price in SkyBlock gems |
+
 ---
 
 ## GET /v1/fire-sales/history
@@ -53,11 +100,28 @@ Returns past fire sales from the database.
 |---|---|---|---|
 | `limit` | integer | `50` | Number of results (1–200) |
 
-### Example
+### Examples
 
+<Tabs>
+  <TabItem label="cURL">
 ```bash
-curl "https://api.skytools.app/v1/fire-sales/history?limit=20"
+curl -H "X-API-Key: sk_your_key_here" \
+  "https://api.skytools.app/v1/fire-sales/history?limit=20"
 ```
+  </TabItem>
+  <TabItem label="JavaScript">
+```javascript
+const response = await fetch(
+  "https://api.skytools.app/v1/fire-sales/history?limit=20",
+  { headers: { "X-API-Key": "sk_your_key_here" } }
+);
+const { data } = await response.json();
+data.history.forEach((sale) => {
+  console.log(`${sale.item_id}: ${sale.amount} at ${sale.price} gems (${sale.recorded_at})`);
+});
+```
+  </TabItem>
+</Tabs>
 
 ### Response
 
@@ -70,10 +134,17 @@ curl "https://api.skytools.app/v1/fire-sales/history?limit=20"
         "item_id": "PET_SKIN_DRAGON_NEON_BLUE",
         "amount": 200,
         "price": 800,
-        "recorded_at": "2025-01-15T12:00:00Z"
+        "recorded_at": "2026-01-15T12:00:00Z"
       }
     ]
   },
   "meta": { "cached": true, "api_version": "v1" }
 }
 ```
+
+| Field | Type | Description |
+|---|---|---|
+| `history[].item_id` | string | Internal SkyBlock item ID |
+| `history[].amount` | integer | Total quantity that was available |
+| `history[].price` | integer | Price in SkyBlock gems |
+| `history[].recorded_at` | string | ISO 8601 timestamp when the sale was recorded |
