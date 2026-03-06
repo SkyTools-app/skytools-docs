@@ -9,10 +9,11 @@ Requests are rate-limited per 60-second sliding window, based on your subscripti
 
 | Tier | Limit | Price |
 |---|---|---|
+| Free | 60 requests/min | $0 |
 | Starter | 120 requests/min | $5.99/mo |
 | Pro | 300 requests/min | $9.99/mo |
 
-Unauthenticated requests are not allowed. See [Authentication](/authentication/) for setup.
+All users with a SkyTools account can create an API key. See [Authentication](/authentication/) for setup.
 
 ## Response Headers
 
@@ -33,7 +34,7 @@ When you exceed the limit, you'll receive a `429` response:
   "success": false,
   "error": {
     "code": "RATE_LIMITED",
-    "message": "Rate limit exceeded. Max 120 requests per minute."
+    "message": "Rate limit exceeded. Max 60 requests per minute."
   }
 }
 ```

@@ -22,7 +22,7 @@ All errors follow this structure:
 | Code | HTTP Status | Description |
 |---|---|---|
 | `UNAUTHORIZED` | 401 | Missing, invalid, or revoked API key |
-| `FORBIDDEN` | 403 | Valid key but no active paid subscription |
+| `FORBIDDEN` | 403 | Valid key but insufficient permissions |
 | `BAD_REQUEST` | 400 | Missing or invalid parameters |
 | `NOT_FOUND` | 404 | Resource or route not found |
 | `RATE_LIMITED` | 429 | Rate limit exceeded |
@@ -50,18 +50,6 @@ All errors follow this structure:
   "error": {
     "code": "UNAUTHORIZED",
     "message": "Invalid or revoked API key."
-  }
-}
-```
-
-### No paid subscription
-
-```json
-{
-  "success": false,
-  "error": {
-    "code": "FORBIDDEN",
-    "message": "An active paid subscription (Starter or Pro) is required to use the API. Subscribe at https://skytools.app"
   }
 }
 ```

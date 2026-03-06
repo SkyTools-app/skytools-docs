@@ -6,21 +6,48 @@ interface DailyUsage {
   count: number;
 }
 
+const RATE_LIMITS: Record<string, number> = {
+  free: 60,
+  starter: 120,
+  pro: 300,
+};
+
 export function UsageStats({ userId }: { userId: string }) {
   const [totalRequests, setTotalRequests] = useState(0);
   const [dailyUsage, setDailyUsage] = useState<DailyUsage[]>([]);
+  const [rateLimit, setRateLimit] = useState(60);
+  const [tierName, setTierName] = useState('Free');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    loadSubscription();
     loadUsage();
   }, []);
 
+  async function loadSubscription() {
+    const { data } = await supabase
+      .from('user_subscriptions')
+      .select('status, tier')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    let tier = 'free';
+    if (data?.status === 'premium') {
+      tier = (data.tier === 'pro' || data.tier === 'starter') ? data.tier : 'pro';
+    }
+
+    setRateLimit(RATE_LIMITS[tier] || 60);
+    setTierName(tier === 'pro' ? 'Pro' : tier === 'starter' ? 'Starter' : 'Free');
+  }
+
   async function loadUsage() {
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString();
+
     const { data, count } = await supabase
       .from('api_usage')
-      .select('*', { count: 'exact' })
+      .select('created_at', { count: 'exact' })
       .eq('user_id', userId)
-      .gte('created_at', new Date(Date.now() - 30 * 86400000).toISOString())
+      .gte('created_at', thirtyDaysAgo)
       .order('created_at', { ascending: false });
 
     setTotalRequests(count || 0);
@@ -55,8 +82,8 @@ export function UsageStats({ userId }: { userId: string }) {
           <div style={{ color: '#888', fontSize: '0.75rem' }}>Requests (30d)</div>
         </div>
         <div style={statBoxStyle}>
-          <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>120</div>
-          <div style={{ color: '#888', fontSize: '0.75rem' }}>Rate Limit (req/min)</div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{rateLimit}</div>
+          <div style={{ color: '#888', fontSize: '0.75rem' }}>Rate Limit (req/min) · {tierName}</div>
         </div>
       </div>
 

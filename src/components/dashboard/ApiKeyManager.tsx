@@ -36,9 +36,8 @@ export function ApiKeyManager({ userId }: { userId: string }) {
     setSubscription(data);
   }
 
-  const isPaid =
-    subscription?.status === 'premium' &&
-    (subscription?.tier === 'starter' || subscription?.tier === 'pro');
+  const tier = subscription?.status === 'premium' ? (subscription?.tier || 'free') : 'free';
+  const canCreateKeys = true; // All tiers can create API keys
 
   async function loadKeys() {
     const { data } = await supabase
@@ -52,7 +51,7 @@ export function ApiKeyManager({ userId }: { userId: string }) {
   }
 
   async function createKey() {
-    if (!newKeyName.trim() || !isPaid) return;
+    if (!newKeyName.trim() || !canCreateKeys) return;
 
     const key = `sk_${crypto.randomUUID().replace(/-/g, '')}`;
     const { error } = await supabase.from('api_keys').insert({
@@ -85,12 +84,12 @@ export function ApiKeyManager({ userId }: { userId: string }) {
     <div>
       <h3 style={{ marginBottom: '1rem' }}>API Keys</h3>
 
-      {!isPaid && (
-        <div style={warningStyle}>
-          <strong>Paid plan required.</strong> API access is available on Starter ($5.99/mo) and Pro ($9.99/mo) plans.
+      {tier === 'free' && (
+        <div style={infoStyle}>
+          <strong>Free tier:</strong> 60 req/min. Upgrade to Starter (120 req/min) or Pro (300 req/min) for higher limits.
           <br />
-          <a href="https://skytools.app" style={{ color: '#6366f1', marginTop: '0.5rem', display: 'inline-block' }}>
-            Upgrade your plan →
+          <a href="https://skytools.app/pricing" style={{ color: '#6366f1', marginTop: '0.5rem', display: 'inline-block' }}>
+            View plans →
           </a>
         </div>
       )}
@@ -113,7 +112,7 @@ export function ApiKeyManager({ userId }: { userId: string }) {
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', opacity: isPaid ? 1 : 0.5 }}>
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', opacity: canCreateKeys ? 1 : 0.5 }}>
         <input
           type="text"
           placeholder="Key name (e.g. My Bot)"
@@ -121,15 +120,15 @@ export function ApiKeyManager({ userId }: { userId: string }) {
           onChange={(e) => setNewKeyName(e.target.value)}
           style={inputStyle}
           onKeyDown={(e) => e.key === 'Enter' && createKey()}
-          disabled={!isPaid}
+          disabled={!canCreateKeys}
         />
-        <button onClick={createKey} style={createBtnStyle} disabled={!isPaid}>
+        <button onClick={createKey} style={createBtnStyle} disabled={!canCreateKeys}>
           Create Key
         </button>
       </div>
 
       {keys.length === 0 ? (
-        <p style={{ color: '#888' }}>No API keys yet.{isPaid ? ' Create one above.' : ''}</p>
+        <p style={{ color: '#888' }}>No API keys yet. Create one above.</p>
       ) : (
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
@@ -246,12 +245,12 @@ const alertStyle: React.CSSProperties = {
   border: '1px solid #22c55e',
 };
 
-const warningStyle: React.CSSProperties = {
+const infoStyle: React.CSSProperties = {
   padding: '1rem',
   marginBottom: '1rem',
   borderRadius: '0.5rem',
-  backgroundColor: '#2e2a1a',
-  border: '1px solid #eab308',
+  backgroundColor: '#1a1a2e',
+  border: '1px solid #6366f1',
 };
 
 const codeStyle: React.CSSProperties = {

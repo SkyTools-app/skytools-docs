@@ -9,20 +9,17 @@ All API requests require a valid API key. Unauthenticated requests are rejected 
 
 ### Requirements
 
-To get an API key you need:
+To get an API key you need a SkyTools account. All tiers (including Free) get API access with different rate limits.
 
-1. A SkyTools account
-2. An active **Starter** ($5.99/mo) or **Pro** ($9.99/mo) subscription
-
-| | Starter | Pro |
-|---|---|---|
-| API access | Yes | Yes |
-| Rate limit | 120 req/min | 300 req/min |
-| Price | $5.99/mo | $9.99/mo |
+| | Free | Starter | Pro |
+|---|---|---|---|
+| API access | Yes | Yes | Yes |
+| Rate limit | 60 req/min | 120 req/min | 300 req/min |
+| Price | $0 | $5.99/mo | $9.99/mo |
 
 ## Getting an API Key
 
-1. Subscribe to a paid plan at [skytools.app](https://skytools.app)
+1. Create a free account at [skytools.app](https://skytools.app)
 2. Go to the [Developer Dashboard](/dashboard)
 3. Sign in with your SkyTools account (email, Google, or Discord)
 4. Click **Create API Key**
@@ -74,21 +71,9 @@ const res = await fetch('https://api.skytools.app/v1/bazaar', {
 }
 ```
 
-### No active paid subscription
-
-```json
-{
-  "success": false,
-  "error": {
-    "code": "FORBIDDEN",
-    "message": "An active paid subscription (Starter or Pro) is required to use the API."
-  }
-}
-```
-
 ## Key Security
 
 - Keep your API key secret. Do not commit it to source control.
 - If a key is compromised, revoke it in the [Dashboard](/dashboard) and create a new one.
 - Keys can be renamed and revoked at any time.
-- If your subscription expires, existing keys will stop working until you resubscribe.
+- If your subscription expires, your keys will revert to the Free tier rate limit (60 req/min).
