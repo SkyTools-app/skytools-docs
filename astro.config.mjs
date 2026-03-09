@@ -24,6 +24,13 @@ export default defineConfig({
             crossorigin: '',
           },
         },
+        {
+          tag: 'meta',
+          attrs: {
+            name: 'color-scheme',
+            content: 'dark light',
+          },
+        },
       ],
       sidebar: [
         {
