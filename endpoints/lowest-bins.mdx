@@ -4,6 +4,10 @@ description: "Lowest Buy It Now prices for all auction house items"
 keywords: ["lowest bin", "buy it now", "cheapest price", "auction house", "item prices"]
 ---
 
+import AuthHeader from '/snippets/auth-header.mdx';
+
+<AuthHeader />
+
 ## GET /v1/auctions/lowest-bins
 
 Returns the lowest BIN (Buy It Now) price for every item currently listed on the auction house. Scans up to 20 pages of auctions to find the cheapest listing for each item.

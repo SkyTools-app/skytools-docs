@@ -49,43 +49,9 @@ print(data["data"]["items"])
 
 ## Response format
 
-Every response follows a consistent JSON envelope:
+import ResponseEnvelope from '/snippets/response-envelope.mdx';
 
-```json
-{
-  "success": true,
-  "data": { ... },
-  "meta": {
-    "cached": false,
-    "api_version": "v1"
-  }
-}
-```
-
-Error responses use the same envelope:
-
-```json
-{
-  "success": false,
-  "error": {
-    "code": "UNAUTHORIZED",
-    "message": "API key is required. Get one at https://developers.skytools.app/dashboard"
-  }
-}
-```
-
-When the API serves stale cached data (e.g. during upstream timeouts), the `meta` object includes additional fields:
-
-```json
-{
-  "meta": {
-    "cached": true,
-    "api_version": "v1",
-    "stale": true,
-    "age_seconds": 245
-  }
-}
-```
+<ResponseEnvelope />
 
 ## Endpoints
 

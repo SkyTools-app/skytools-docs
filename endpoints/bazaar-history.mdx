@@ -4,6 +4,10 @@ description: "Historical bazaar price snapshots and hourly aggregates"
 keywords: ["bazaar history", "price history", "historical data", "snapshots", "aggregates", "charts"]
 ---
 
+import AuthHeader from '/snippets/auth-header.mdx';
+
+<AuthHeader />
+
 ## GET /v1/bazaar/history
 
 Returns historical price data for a bazaar item. Short ranges (1h, 24h) return raw 5-minute snapshots. Longer ranges (7d, 30d, 90d) return hourly aggregates.

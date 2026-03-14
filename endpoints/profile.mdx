@@ -4,6 +4,10 @@ description: "Player profiles, net worth, inventories, and museum data"
 keywords: ["player profile", "net worth", "inventory", "museum", "skyblock profile", "uuid"]
 ---
 
+import AuthHeader from '/snippets/auth-header.mdx';
+
+<AuthHeader />
+
 <Warning>
 Profile endpoints rely on an upstream bridge for UUID resolution and data processing. If it times out, the API may return stale cached data (up to 30 minutes old). Check `meta.stale` to detect this.
 </Warning>

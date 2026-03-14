@@ -4,6 +4,10 @@ description: "Look up Hypixel guilds by name or player"
 keywords: ["guild", "guild lookup", "members", "guild tag", "hypixel guild"]
 ---
 
+import AuthHeader from '/snippets/auth-header.mdx';
+
+<AuthHeader />
+
 ## GET /v1/guild
 
 Look up a Hypixel guild by its name or by a player's username. You must provide **one** of `name` or `player`.

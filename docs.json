@@ -2,6 +2,10 @@
   "$schema": "https://mintlify.com/docs.json",
   "name": "SkyTools API",
   "theme": "mint",
+  "logo": {
+    "light": "/images/logo.png",
+    "dark": "/images/logo.png"
+  },
   "favicon": "/images/favicon.ico",
   "colors": {
     "primary": "#6366f1",
@@ -31,31 +35,40 @@
     }
   ],
   "navigation": {
-    "groups": [
+    "tabs": [
       {
-        "group": "Getting started",
-        "pages": [
-          "introduction",
-          "authentication",
-          "rate-limits",
-          "errors"
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Getting started",
+            "pages": [
+              "introduction",
+              "authentication",
+              "rate-limits",
+              "errors"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "endpoints/bazaar",
+              "endpoints/bazaar-history",
+              "endpoints/auctions",
+              "endpoints/lowest-bins",
+              "endpoints/profile",
+              "endpoints/items",
+              "endpoints/collections",
+              "endpoints/mayor",
+              "endpoints/fire-sales",
+              "endpoints/guild",
+              "endpoints/recipes"
+            ]
+          }
         ]
       },
       {
-        "group": "Endpoints",
-        "pages": [
-          "endpoints/bazaar",
-          "endpoints/bazaar-history",
-          "endpoints/auctions",
-          "endpoints/lowest-bins",
-          "endpoints/profile",
-          "endpoints/items",
-          "endpoints/collections",
-          "endpoints/mayor",
-          "endpoints/fire-sales",
-          "endpoints/guild",
-          "endpoints/recipes"
-        ]
+        "tab": "API Reference",
+        "openapi": "openapi.yaml"
       }
     ]
   },
@@ -72,7 +85,6 @@
   "contextual": {
     "options": ["copy", "chatgpt", "claude", "mcp", "cursor", "vscode"]
   },
-  "openapi": ["openapi.yaml"],
   "api": {
     "baseUrl": "https://api.skytools.app",
     "auth": {
