@@ -1,11 +1,7 @@
 ---
-title: Items
-description: Complete SkyBlock item database
-sidebar:
-  order: 6
+title: "Items"
+description: "Complete SkyBlock item database"
 ---
-
-import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 ## GET /v1/items
 
@@ -13,21 +9,19 @@ Returns the complete catalog of Hypixel SkyBlock items.
 
 **Cache:** 1 hour
 
-### Query Parameters
+### Query parameters
 
 None.
 
 ### Examples
 
-<Tabs>
-  <TabItem label="cURL">
-```bash
+<CodeGroup>
+```bash cURL
 curl -H "X-API-Key: sk_your_key_here" \
   "https://api.skytools.app/v1/items"
 ```
-  </TabItem>
-  <TabItem label="JavaScript">
-```javascript
+
+```javascript JavaScript
 const response = await fetch("https://api.skytools.app/v1/items", {
   headers: { "X-API-Key": "sk_your_key_here" },
 });
@@ -37,9 +31,8 @@ console.log(`${data.items.length} items`);
 // Find a specific item
 const hyperion = data.items.find((item) => item.id === "HYPERION");
 ```
-  </TabItem>
-  <TabItem label="Python">
-```python
+
+```python Python
 import requests
 
 response = requests.get(
@@ -49,8 +42,7 @@ response = requests.get(
 items = response.json()["data"]["items"]
 print(f"{len(items)} items loaded")
 ```
-  </TabItem>
-</Tabs>
+</CodeGroup>
 
 ### Response
 

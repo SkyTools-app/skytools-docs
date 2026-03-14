@@ -1,11 +1,7 @@
 ---
-title: Collections
-description: SkyBlock collection categories, tiers, and unlock requirements
-sidebar:
-  order: 7
+title: "Collections"
+description: "SkyBlock collection categories, tiers, and unlock requirements"
 ---
-
-import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 ## GET /v1/collections
 
@@ -13,21 +9,19 @@ Returns all SkyBlock collections organized by category, with tier requirements a
 
 **Cache:** 1 hour
 
-### Query Parameters
+### Query parameters
 
 None.
 
 ### Examples
 
-<Tabs>
-  <TabItem label="cURL">
-```bash
+<CodeGroup>
+```bash cURL
 curl -H "X-API-Key: sk_your_key_here" \
   "https://api.skytools.app/v1/collections"
 ```
-  </TabItem>
-  <TabItem label="JavaScript">
-```javascript
+
+```javascript JavaScript
 const response = await fetch("https://api.skytools.app/v1/collections", {
   headers: { "X-API-Key": "sk_your_key_here" },
 });
@@ -37,9 +31,8 @@ const { data } = await response.json();
 const farming = data.collections["FARMING"];
 console.log(Object.keys(farming.items));
 ```
-  </TabItem>
-  <TabItem label="Python">
-```python
+
+```python Python
 import requests
 
 response = requests.get(
@@ -52,8 +45,7 @@ collections = response.json()["data"]["collections"]
 for item_id, item in collections["FARMING"]["items"].items():
     print(f"{item['name']}: {item['maxTiers']} tiers")
 ```
-  </TabItem>
-</Tabs>
+</CodeGroup>
 
 ### Response
 

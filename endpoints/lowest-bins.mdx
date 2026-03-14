@@ -1,11 +1,7 @@
 ---
-title: Lowest BINs
-description: Lowest Buy It Now prices for all auction house items
-sidebar:
-  order: 4
+title: "Lowest BINs"
+description: "Lowest Buy It Now prices for all auction house items"
 ---
-
-import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 ## GET /v1/auctions/lowest-bins
 
@@ -13,21 +9,19 @@ Returns the lowest BIN (Buy It Now) price for every item currently listed on the
 
 **Cache:** 5 minutes
 
-### Query Parameters
+### Query parameters
 
 None.
 
 ### Examples
 
-<Tabs>
-  <TabItem label="cURL">
-```bash
+<CodeGroup>
+```bash cURL
 curl -H "X-API-Key: sk_your_key_here" \
   "https://api.skytools.app/v1/auctions/lowest-bins"
 ```
-  </TabItem>
-  <TabItem label="JavaScript">
-```javascript
+
+```javascript JavaScript
 const response = await fetch("https://api.skytools.app/v1/auctions/lowest-bins", {
   headers: { "X-API-Key": "sk_your_key_here" },
 });
@@ -37,9 +31,8 @@ const { data } = await response.json();
 const hyperionPrice = data.lowestBins["Hyperion"];
 console.log(`Cheapest Hyperion: ${hyperionPrice.toLocaleString()} coins`);
 ```
-  </TabItem>
-  <TabItem label="Python">
-```python
+
+```python Python
 import requests
 
 response = requests.get(
@@ -51,8 +44,7 @@ lowest_bins = response.json()["data"]["lowestBins"]
 hyperion_price = lowest_bins.get("Hyperion", "Not listed")
 print(f"Cheapest Hyperion: {hyperion_price:,} coins")
 ```
-  </TabItem>
-</Tabs>
+</CodeGroup>
 
 ### Response
 

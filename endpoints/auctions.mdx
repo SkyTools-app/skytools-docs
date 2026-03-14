@@ -1,11 +1,7 @@
 ---
-title: Auctions
-description: Get active Hypixel SkyBlock auction listings
-sidebar:
-  order: 3
+title: "Auctions"
+description: "Get active Hypixel SkyBlock auction listings"
 ---
-
-import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 ## GET /v1/auctions
 
@@ -13,7 +9,7 @@ Returns a page of active auctions from the Hypixel API.
 
 **Cache:** 30 seconds
 
-### Query Parameters
+### Query parameters
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
@@ -21,24 +17,21 @@ Returns a page of active auctions from the Hypixel API.
 
 ### Examples
 
-<Tabs>
-  <TabItem label="cURL">
-```bash
+<CodeGroup>
+```bash cURL
 curl -H "X-API-Key: sk_your_key_here" \
   "https://api.skytools.app/v1/auctions?page=0"
 ```
-  </TabItem>
-  <TabItem label="JavaScript">
-```javascript
+
+```javascript JavaScript
 const response = await fetch("https://api.skytools.app/v1/auctions?page=0", {
   headers: { "X-API-Key": "sk_your_key_here" },
 });
 const { data } = await response.json();
 console.log(`Page ${data.page} of ${data.totalPages} (${data.totalAuctions} auctions)`);
 ```
-  </TabItem>
-  <TabItem label="Python">
-```python
+
+```python Python
 import requests
 
 response = requests.get(
@@ -49,8 +42,7 @@ response = requests.get(
 data = response.json()["data"]
 print(f"Page {data['page']} of {data['totalPages']}")
 ```
-  </TabItem>
-</Tabs>
+</CodeGroup>
 
 ### Response
 

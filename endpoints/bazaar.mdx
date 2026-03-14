@@ -1,11 +1,7 @@
 ---
-title: Bazaar
-description: Real-time bazaar prices, flip opportunities, and trend signals
-sidebar:
-  order: 1
+title: "Bazaar"
+description: "Real-time bazaar prices, flip opportunities, and trend signals"
 ---
-
-import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
 
 ## GET /v1/bazaar
 
@@ -13,7 +9,7 @@ Returns bazaar product data from the Hypixel API. Use the `mode` parameter to co
 
 **Cache:** 5 seconds
 
-### Query Parameters
+### Query parameters
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
@@ -27,24 +23,21 @@ Returns bazaar product data from the Hypixel API. Use the `mode` parameter to co
 
 Returns all bazaar products with raw Hypixel data.
 
-<Tabs>
-  <TabItem label="cURL">
-```bash
+<CodeGroup>
+```bash cURL
 curl -H "X-API-Key: sk_your_key_here" \
   "https://api.skytools.app/v1/bazaar?mode=full"
 ```
-  </TabItem>
-  <TabItem label="JavaScript">
-```javascript
+
+```javascript JavaScript
 const response = await fetch("https://api.skytools.app/v1/bazaar?mode=full", {
   headers: { "X-API-Key": "sk_your_key_here" },
 });
 const { data } = await response.json();
 console.log(Object.keys(data.products).length, "products");
 ```
-  </TabItem>
-  <TabItem label="Python">
-```python
+
+```python Python
 import requests
 
 response = requests.get(
@@ -54,8 +47,7 @@ response = requests.get(
 )
 products = response.json()["data"]["products"]
 ```
-  </TabItem>
-</Tabs>
+</CodeGroup>
 
 ```json
 {
@@ -82,7 +74,7 @@ products = response.json()["data"]["products"]
 }
 ```
 
-<Aside type="tip">This returns ~1,500 products. If you only need item IDs, use `mode=list` to save bandwidth.</Aside>
+<Tip>This returns ~1,500 products. If you only need item IDs, use `mode=list` to save bandwidth.</Tip>
 
 ---
 
@@ -205,7 +197,7 @@ curl -H "X-API-Key: sk_your_key_here" \
 }
 ```
 
-<Aside>Trend data is computed on-server from 5-minute bazaar snapshots. It includes price movement signals across multiple timeframes.</Aside>
+<Note>Trend data is computed on-server from 5-minute bazaar snapshots. It includes price movement signals across multiple timeframes.</Note>
 
 ---
 

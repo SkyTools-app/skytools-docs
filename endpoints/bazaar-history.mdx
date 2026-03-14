@@ -1,11 +1,7 @@
 ---
-title: Bazaar History
-description: Historical bazaar price snapshots and hourly aggregates
-sidebar:
-  order: 2
+title: "Bazaar History"
+description: "Historical bazaar price snapshots and hourly aggregates"
 ---
-
-import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
 
 ## GET /v1/bazaar/history
 
@@ -13,18 +9,18 @@ Returns historical price data for a bazaar item. Short ranges (1h, 24h) return r
 
 **Cache:** 5 minutes
 
-<Aside type="caution">
+<Warning>
 If the upstream data source times out, the API may return stale cached data (up to 30 minutes old). Check `meta.stale` in the response to detect this.
-</Aside>
+</Warning>
 
-### Query Parameters
+### Query parameters
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
 | `item_id` | string | — | **Required.** Bazaar item ID (e.g. `DIAMOND`) |
 | `range` | string | `24h` | Time range: `1h`, `24h`, `7d`, `30d`, `90d` |
 
-### Data Resolution
+### Data resolution
 
 | Range | Source | Max Data Points |
 |---|---|---|
@@ -36,15 +32,13 @@ If the upstream data source times out, the API may return stale cached data (up 
 
 ### Examples
 
-<Tabs>
-  <TabItem label="cURL">
-```bash
+<CodeGroup>
+```bash cURL
 curl -H "X-API-Key: sk_your_key_here" \
   "https://api.skytools.app/v1/bazaar/history?item_id=DIAMOND&range=24h"
 ```
-  </TabItem>
-  <TabItem label="JavaScript">
-```javascript
+
+```javascript JavaScript
 const response = await fetch(
   "https://api.skytools.app/v1/bazaar/history?item_id=DIAMOND&range=24h",
   { headers: { "X-API-Key": "sk_your_key_here" } }
@@ -57,9 +51,8 @@ data.history.forEach((point) => {
   console.log(`${point.recorded_at}: sell=${point.sell_price} buy=${point.buy_price}`);
 });
 ```
-  </TabItem>
-  <TabItem label="Python">
-```python
+
+```python Python
 import requests
 
 response = requests.get(
@@ -72,8 +65,7 @@ history = response.json()["data"]["history"]
 for point in history:
     print(f"{point['recorded_at']}: sell={point['sell_price']}")
 ```
-  </TabItem>
-</Tabs>
+</CodeGroup>
 
 ### Response
 

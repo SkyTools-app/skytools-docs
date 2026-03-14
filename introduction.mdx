@@ -1,9 +1,7 @@
 ---
-title: SkyTools API
-description: Developer documentation for the SkyTools Hypixel SkyBlock API
+title: "SkyTools API"
+description: "Developer documentation for the SkyTools Hypixel SkyBlock API"
 ---
-
-import { Card, CardGrid, Aside, Tabs, TabItem } from '@astrojs/starlight/components';
 
 The SkyTools API gives you programmatic access to real-time and historical Hypixel SkyBlock data — bazaar prices, auction listings, player profiles, net worth breakdowns, items, collections, mayors, fire sales, guilds, and crafting recipes.
 
@@ -13,32 +11,29 @@ The SkyTools API gives you programmatic access to real-time and historical Hypix
 https://api.skytools.app/v1
 ```
 
-## Quick Start
+## Quick start
 
-<Aside type="tip">All SkyTools accounts — including Free tier — can create API keys.</Aside>
+<Tip>All SkyTools accounts — including Free tier — can create API keys.</Tip>
 
 1. Create a free account at [skytools.app](https://skytools.app)
-2. Generate an API key in the [Developer Dashboard](/dashboard)
+2. Generate an API key in the [Developer Dashboard](https://developer.skytools.app/dashboard)
 3. Start making requests:
 
-<Tabs>
-  <TabItem label="cURL">
-```bash
+<CodeGroup>
+```bash cURL
 curl -H "X-API-Key: sk_your_key_here" \
   "https://api.skytools.app/v1/bazaar?mode=list"
 ```
-  </TabItem>
-  <TabItem label="JavaScript">
-```javascript
+
+```javascript JavaScript
 const response = await fetch("https://api.skytools.app/v1/bazaar?mode=list", {
   headers: { "X-API-Key": "sk_your_key_here" },
 });
 const { success, data, meta } = await response.json();
 console.log(data.items);
 ```
-  </TabItem>
-  <TabItem label="Python">
-```python
+
+```python Python
 import requests
 
 response = requests.get(
@@ -49,10 +44,9 @@ response = requests.get(
 data = response.json()
 print(data["data"]["items"])
 ```
-  </TabItem>
-</Tabs>
+</CodeGroup>
 
-## Response Format
+## Response format
 
 Every response follows a consistent JSON envelope:
 
@@ -94,54 +88,43 @@ When the API serves stale cached data (e.g. during upstream timeouts), the `meta
 
 ## Endpoints
 
-<CardGrid>
-  <Card title="Bazaar" icon="star">
+<CardGroup cols={2}>
+  <Card title="Bazaar" icon="star" href="/endpoints/bazaar">
     Real-time prices, flip opportunities, and trend signals.
-    [View docs](/endpoints/bazaar)
   </Card>
-  <Card title="Bazaar History" icon="graph">
+  <Card title="Bazaar History" icon="chart-line" href="/endpoints/bazaar-history">
     Historical price snapshots from 1 hour to 90 days.
-    [View docs](/endpoints/bazaar-history)
   </Card>
-  <Card title="Auctions" icon="rocket">
+  <Card title="Auctions" icon="rocket" href="/endpoints/auctions">
     Paginated active auction listings.
-    [View docs](/endpoints/auctions)
   </Card>
-  <Card title="Lowest BINs" icon="down-caret">
+  <Card title="Lowest BINs" icon="arrow-down" href="/endpoints/lowest-bins">
     Lowest Buy It Now price for every auctioned item.
-    [View docs](/endpoints/lowest-bins)
   </Card>
-  <Card title="Player Profiles" icon="seti:todo">
+  <Card title="Player Profiles" icon="user" href="/endpoints/profile">
     Profiles, net worth, inventories, and museum data.
-    [View docs](/endpoints/profile)
   </Card>
-  <Card title="Items" icon="list-format">
+  <Card title="Items" icon="list" href="/endpoints/items">
     Complete SkyBlock item database.
-    [View docs](/endpoints/items)
   </Card>
-  <Card title="Collections" icon="open-book">
+  <Card title="Collections" icon="book-open" href="/endpoints/collections">
     Collection categories, tiers, and unlock requirements.
-    [View docs](/endpoints/collections)
   </Card>
-  <Card title="Mayor" icon="information">
+  <Card title="Mayor" icon="landmark" href="/endpoints/mayor">
     Current mayor, perks, and election history.
-    [View docs](/endpoints/mayor)
   </Card>
-  <Card title="Fire Sales" icon="puzzle">
+  <Card title="Fire Sales" icon="fire" href="/endpoints/fire-sales">
     Active fire sales and historical sale data.
-    [View docs](/endpoints/fire-sales)
   </Card>
-  <Card title="Guild" icon="seti:folder">
+  <Card title="Guild" icon="users" href="/endpoints/guild">
     Guild lookup by name or player.
-    [View docs](/endpoints/guild)
   </Card>
-  <Card title="Recipes" icon="seti:json">
+  <Card title="Recipes" icon="hammer" href="/endpoints/recipes">
     Crafting recipes for SkyBlock items.
-    [View docs](/endpoints/recipes)
   </Card>
-</CardGrid>
+</CardGroup>
 
-## Rate Limits
+## Rate limits
 
 | Tier | Limit | Price |
 |---|---|---|
@@ -149,11 +132,11 @@ When the API serves stale cached data (e.g. during upstream timeouts), the `meta
 | Starter | 120 req/min | $5.99/mo |
 | Pro | 300 req/min | $9.99/mo |
 
-See [Rate Limits](/rate-limits/) for details on headers and retry strategies.
+See [Rate Limits](/rate-limits) for details on headers and retry strategies.
 
 ## Resources
 
-- [Authentication](/authentication/) — API key setup and usage
-- [Rate Limits](/rate-limits/) — Quotas, headers, and optimization tips
-- [Error Codes](/errors/) — Complete error reference with troubleshooting
-- [Developer Dashboard](/dashboard) — Manage API keys and view usage stats
+- [Authentication](/authentication) — API key setup and usage
+- [Rate Limits](/rate-limits) — Quotas, headers, and optimization tips
+- [Error Codes](/errors) — Complete error reference with troubleshooting
+- [Developer Dashboard](https://developer.skytools.app/dashboard) — Manage API keys and view usage stats

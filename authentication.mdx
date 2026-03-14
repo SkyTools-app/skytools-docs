@@ -1,15 +1,13 @@
 ---
-title: Authentication
-description: How to authenticate with the SkyTools API
+title: "Authentication"
+description: "How to authenticate with the SkyTools API"
 ---
 
-import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
-
-## API Key Required
+## API key required
 
 All `/v1/*` endpoints require a valid API key. Requests without a key receive a `401 Unauthorized` response.
 
-<Aside type="note">Every SkyTools account — including Free — can create API keys. Your tier only affects [rate limits](/rate-limits/).</Aside>
+<Note>Every SkyTools account — including Free — can create API keys. Your tier only affects [rate limits](/rate-limits).</Note>
 
 ### Tiers
 
@@ -19,40 +17,36 @@ All `/v1/*` endpoints require a valid API key. Requests without a key receive a 
 | Rate limit | 60 req/min | 120 req/min | 300 req/min |
 | Price | $0 | $5.99/mo | $9.99/mo |
 
-## Getting an API Key
+## Getting an API key
 
 1. Create a free account at [skytools.app](https://skytools.app)
-2. Go to the [Developer Dashboard](/dashboard)
+2. Go to the [Developer Dashboard](https://developer.skytools.app/dashboard)
 3. Sign in with your SkyTools account (email, Google, or Discord)
 4. Click **Create API Key**
 5. Copy your key — it starts with `sk_`
 
 You can create multiple keys, rename them, and revoke them at any time from the dashboard.
 
-## Sending Your Key
+## Sending your key
 
 Include your API key using **either** of these methods:
 
-<Tabs>
-  <TabItem label="X-API-Key Header (recommended)">
-```bash
+<CodeGroup>
+```bash X-API-Key Header (recommended)
 curl -H "X-API-Key: sk_your_key_here" \
   "https://api.skytools.app/v1/bazaar?mode=list"
 ```
-  </TabItem>
-  <TabItem label="Bearer Token">
-```bash
+
+```bash Bearer Token
 curl -H "Authorization: Bearer sk_your_key_here" \
   "https://api.skytools.app/v1/bazaar?mode=list"
 ```
-  </TabItem>
-</Tabs>
+</CodeGroup>
 
-### Code Examples
+### Code examples
 
-<Tabs>
-  <TabItem label="JavaScript">
-```javascript
+<CodeGroup>
+```javascript JavaScript
 const API_KEY = "sk_your_key_here";
 
 const response = await fetch("https://api.skytools.app/v1/bazaar?mode=list", {
@@ -60,9 +54,8 @@ const response = await fetch("https://api.skytools.app/v1/bazaar?mode=list", {
 });
 const { success, data } = await response.json();
 ```
-  </TabItem>
-  <TabItem label="Python">
-```python
+
+```python Python
 import requests
 
 API_KEY = "sk_your_key_here"
@@ -74,10 +67,9 @@ response = requests.get(
 )
 data = response.json()
 ```
-  </TabItem>
-</Tabs>
+</CodeGroup>
 
-## Error Responses
+## Error responses
 
 ### No key provided
 
@@ -103,9 +95,9 @@ data = response.json()
 }
 ```
 
-## Key Security
+## Key security
 
 - **Keep your key secret.** Never commit it to source control or expose it in client-side code.
 - **Use environment variables** to store your key in applications.
-- **Revoke compromised keys** immediately in the [Dashboard](/dashboard) and create a new one.
+- **Revoke compromised keys** immediately in the [Dashboard](https://developer.skytools.app/dashboard) and create a new one.
 - **Subscription expiry:** If your subscription lapses, your keys remain valid but revert to Free tier rate limits (60 req/min). There is a 3-day grace period after expiration before the downgrade takes effect.

@@ -1,11 +1,7 @@
 ---
-title: Recipes
-description: Crafting recipes for SkyBlock items
-sidebar:
-  order: 11
+title: "Recipes"
+description: "Crafting recipes for SkyBlock items"
 ---
-
-import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 ## GET /v1/recipes
 
@@ -13,30 +9,27 @@ Returns crafting recipes for SkyBlock items, sourced from the NEU (NotEnoughUpda
 
 **Cache:** 24 hours
 
-### Query Parameters
+### Query parameters
 
 None.
 
 ### Examples
 
-<Tabs>
-  <TabItem label="cURL">
-```bash
+<CodeGroup>
+```bash cURL
 curl -H "X-API-Key: sk_your_key_here" \
   "https://api.skytools.app/v1/recipes"
 ```
-  </TabItem>
-  <TabItem label="JavaScript">
-```javascript
+
+```javascript JavaScript
 const response = await fetch("https://api.skytools.app/v1/recipes", {
   headers: { "X-API-Key": "sk_your_key_here" },
 });
 const { data } = await response.json();
 console.log(`${Object.keys(data).length} recipes loaded`);
 ```
-  </TabItem>
-  <TabItem label="Python">
-```python
+
+```python Python
 import requests
 
 response = requests.get(
@@ -46,8 +39,7 @@ response = requests.get(
 recipes = response.json()["data"]
 print(f"{len(recipes)} recipes loaded")
 ```
-  </TabItem>
-</Tabs>
+</CodeGroup>
 
 ### Response
 

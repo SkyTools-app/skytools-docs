@@ -1,11 +1,7 @@
 ---
-title: Fire Sales
-description: Active and historical SkyBlock fire sales
-sidebar:
-  order: 9
+title: "Fire Sales"
+description: "Active and historical SkyBlock fire sales"
 ---
-
-import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 ## GET /v1/fire-sales
 
@@ -13,21 +9,19 @@ Returns currently active fire sales from the Hypixel API.
 
 **Cache:** 1 minute
 
-### Query Parameters
+### Query parameters
 
 None.
 
 ### Examples
 
-<Tabs>
-  <TabItem label="cURL">
-```bash
+<CodeGroup>
+```bash cURL
 curl -H "X-API-Key: sk_your_key_here" \
   "https://api.skytools.app/v1/fire-sales"
 ```
-  </TabItem>
-  <TabItem label="JavaScript">
-```javascript
+
+```javascript JavaScript
 const response = await fetch("https://api.skytools.app/v1/fire-sales", {
   headers: { "X-API-Key": "sk_your_key_here" },
 });
@@ -41,9 +35,8 @@ if (data.sales.length === 0) {
   });
 }
 ```
-  </TabItem>
-  <TabItem label="Python">
-```python
+
+```python Python
 import requests
 
 response = requests.get(
@@ -55,8 +48,7 @@ sales = response.json()["data"]["sales"]
 for sale in sales:
     print(f"{sale['item_id']}: {sale['amount']} at {sale['price']} gems")
 ```
-  </TabItem>
-</Tabs>
+</CodeGroup>
 
 ### Response
 
@@ -94,7 +86,7 @@ Returns past fire sales from the database.
 
 **Cache:** 5 minutes
 
-### Query Parameters
+### Query parameters
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
@@ -102,15 +94,13 @@ Returns past fire sales from the database.
 
 ### Examples
 
-<Tabs>
-  <TabItem label="cURL">
-```bash
+<CodeGroup>
+```bash cURL
 curl -H "X-API-Key: sk_your_key_here" \
   "https://api.skytools.app/v1/fire-sales/history?limit=20"
 ```
-  </TabItem>
-  <TabItem label="JavaScript">
-```javascript
+
+```javascript JavaScript
 const response = await fetch(
   "https://api.skytools.app/v1/fire-sales/history?limit=20",
   { headers: { "X-API-Key": "sk_your_key_here" } }
@@ -120,8 +110,7 @@ data.history.forEach((sale) => {
   console.log(`${sale.item_id}: ${sale.amount} at ${sale.price} gems (${sale.recorded_at})`);
 });
 ```
-  </TabItem>
-</Tabs>
+</CodeGroup>
 
 ### Response
 

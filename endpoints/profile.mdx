@@ -1,15 +1,11 @@
 ---
-title: Player Profiles
-description: Player profiles, net worth, inventories, and museum data
-sidebar:
-  order: 5
+title: "Player Profiles"
+description: "Player profiles, net worth, inventories, and museum data"
 ---
 
-import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
-
-<Aside type="caution">
+<Warning>
 Profile endpoints rely on an upstream bridge for UUID resolution and data processing. If it times out, the API may return stale cached data (up to 30 minutes old). Check `meta.stale` to detect this.
-</Aside>
+</Warning>
 
 ## GET /v1/profile/:username
 
@@ -17,7 +13,7 @@ Returns all SkyBlock profiles for a Minecraft player.
 
 **Cache:** 15 minutes
 
-### Path Parameters
+### Path parameters
 
 | Parameter | Type | Description |
 |---|---|---|
@@ -25,15 +21,13 @@ Returns all SkyBlock profiles for a Minecraft player.
 
 ### Examples
 
-<Tabs>
-  <TabItem label="cURL">
-```bash
+<CodeGroup>
+```bash cURL
 curl -H "X-API-Key: sk_your_key_here" \
   "https://api.skytools.app/v1/profile/Refraction"
 ```
-  </TabItem>
-  <TabItem label="JavaScript">
-```javascript
+
+```javascript JavaScript
 const response = await fetch("https://api.skytools.app/v1/profile/Refraction", {
   headers: { "X-API-Key": "sk_your_key_here" },
 });
@@ -41,9 +35,8 @@ const { data } = await response.json();
 console.log(`UUID: ${data.uuid}`);
 console.log(`Profiles: ${data.profiles.length}`);
 ```
-  </TabItem>
-  <TabItem label="Python">
-```python
+
+```python Python
 import requests
 
 response = requests.get(
@@ -53,8 +46,7 @@ response = requests.get(
 data = response.json()["data"]
 print(f"UUID: {data['uuid']}, Profiles: {len(data['profiles'])}")
 ```
-  </TabItem>
-</Tabs>
+</CodeGroup>
 
 ### Response
 
@@ -95,13 +87,13 @@ Returns a full net worth breakdown for a player's SkyBlock profile.
 
 **Cache:** 5 minutes
 
-### Path Parameters
+### Path parameters
 
 | Parameter | Type | Description |
 |---|---|---|
 | `username` | string | Minecraft username |
 
-### Query Parameters
+### Query parameters
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
@@ -128,7 +120,7 @@ curl -H "X-API-Key: sk_your_key_here" \
 }
 ```
 
-<Aside>Net worth is computed server-side using current bazaar/auction prices. The breakdown includes categories like armor, inventory, pets, accessories, storage, etc.</Aside>
+<Note>Net worth is computed server-side using current bazaar/auction prices. The breakdown includes categories like armor, inventory, pets, accessories, storage, etc.</Note>
 
 ---
 
@@ -138,13 +130,13 @@ Returns parsed inventory items for a player's SkyBlock profile.
 
 **Cache:** 5 minutes
 
-### Path Parameters
+### Path parameters
 
 | Parameter | Type | Description |
 |---|---|---|
 | `username` | string | Minecraft username |
 
-### Query Parameters
+### Query parameters
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
@@ -179,13 +171,13 @@ Returns museum data for a player's SkyBlock profile.
 
 **Cache:** 15 minutes
 
-### Path Parameters
+### Path parameters
 
 | Parameter | Type | Description |
 |---|---|---|
 | `username` | string | Minecraft username |
 
-### Query Parameters
+### Query parameters
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
@@ -214,7 +206,7 @@ curl -H "X-API-Key: sk_your_key_here" \
 
 ---
 
-### Errors (All Profile Endpoints)
+### Errors (all profile endpoints)
 
 | Code | HTTP Status | When |
 |---|---|---|

@@ -1,11 +1,9 @@
 ---
-title: Rate Limits
-description: Rate limiting details for the SkyTools API
+title: "Rate Limits"
+description: "Rate limiting details for the SkyTools API"
 ---
 
-import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
-
-## Limits by Tier
+## Limits by tier
 
 Requests are rate-limited using a **60-second sliding window**, keyed to your API key.
 
@@ -15,7 +13,7 @@ Requests are rate-limited using a **60-second sliding window**, keyed to your AP
 | Starter | 120 requests/min | $5.99/mo |
 | Pro | 300 requests/min | $9.99/mo |
 
-## Response Headers
+## Response headers
 
 Every API response includes rate limit headers:
 
@@ -25,7 +23,7 @@ Every API response includes rate limit headers:
 | `X-RateLimit-Remaining` | Requests remaining in current window | `298` |
 | `Retry-After` | Seconds until window resets (**only on 429**) | `42` |
 
-## Rate Limit Exceeded
+## Rate limit exceeded
 
 When you exceed the limit, the API returns `429 Too Many Requests`:
 
@@ -39,11 +37,10 @@ When you exceed the limit, the API returns `429 Too Many Requests`:
 }
 ```
 
-### Retry Strategy
+### Retry strategy
 
-<Tabs>
-  <TabItem label="JavaScript">
-```javascript
+<CodeGroup>
+```javascript JavaScript
 async function fetchWithRetry(url, headers, maxRetries = 3) {
   for (let i = 0; i < maxRetries; i++) {
     const response = await fetch(url, { headers });
@@ -59,9 +56,8 @@ async function fetchWithRetry(url, headers, maxRetries = 3) {
   throw new Error("Max retries exceeded");
 }
 ```
-  </TabItem>
-  <TabItem label="Python">
-```python
+
+```python Python
 import time
 import requests
 
@@ -78,12 +74,11 @@ def fetch_with_retry(url, headers, max_retries=3):
 
     raise Exception("Max retries exceeded")
 ```
-  </TabItem>
-</Tabs>
+</CodeGroup>
 
-## Optimization Tips
+## Optimization tips
 
-<Aside type="tip">Cached responses still count toward your quota — optimize on your side to avoid redundant requests.</Aside>
+<Tip>Cached responses still count toward your quota — optimize on your side to avoid redundant requests.</Tip>
 
 - **Batch requests.** Use `mode=full` to get all bazaar data in a single call instead of fetching items one at a time.
 - **Respect update intervals.** Bazaar data refreshes every ~5 seconds. Polling faster than that wastes quota with no new data.
@@ -91,6 +86,6 @@ def fetch_with_retry(url, headers, max_retries=3):
 - **Use the right mode.** If you only need item IDs, use `mode=list` instead of `mode=full`.
 - **Monitor headers.** Check `X-RateLimit-Remaining` to proactively throttle before hitting limits.
 
-## Usage Tracking
+## Usage tracking
 
-Every API request is logged. View your usage breakdown by endpoint and time period in the [Developer Dashboard](/dashboard).
+Every API request is logged. View your usage breakdown by endpoint and time period in the [Developer Dashboard](https://developer.skytools.app/dashboard).
