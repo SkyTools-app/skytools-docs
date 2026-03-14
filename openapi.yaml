@@ -1,0 +1,959 @@
+openapi: 3.1.0
+info:
+  title: SkyTools API
+  description: Real-time and historical Hypixel SkyBlock data API
+  version: "1.0"
+  contact:
+    name: SkyTools
+    url: https://skytools.app
+servers:
+  - url: https://api.skytools.app/v1
+    description: Production
+security:
+  - apiKey: []
+components:
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key starting with `sk_`. Get one at https://developer.skytools.app/dashboard
+  schemas:
+    Meta:
+      type: object
+      properties:
+        cached:
+          type: boolean
+          description: Whether the response was served from cache
+        api_version:
+          type: string
+          example: v1
+        stale:
+          type: boolean
+          description: Whether the cached data is stale (only present when true)
+        age_seconds:
+          type: integer
+          description: Age of stale cache in seconds (only present when stale)
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: UNAUTHORIZED
+            message:
+              type: string
+              example: API key is required.
+    BazaarQuickStatus:
+      type: object
+      properties:
+        sellPrice:
+          type: number
+          example: 7.5
+        buyPrice:
+          type: number
+          example: 8.1
+        sellVolume:
+          type: integer
+          example: 1234567
+        buyVolume:
+          type: integer
+          example: 987654
+        sellMovingWeek:
+          type: integer
+          example: 50000000
+        buyMovingWeek:
+          type: integer
+          example: 45000000
+        sellOrders:
+          type: integer
+          example: 150
+        buyOrders:
+          type: integer
+          example: 200
+    BazaarItem:
+      type: object
+      properties:
+        id:
+          type: string
+          example: DIAMOND
+        sellPrice:
+          type: number
+          example: 7.5
+        buyPrice:
+          type: number
+          example: 8.1
+        sellVolume:
+          type: integer
+          example: 1234567
+        buyVolume:
+          type: integer
+          example: 987654
+        spread:
+          type: number
+          example: 0.6
+        spreadPercent:
+          type: number
+          example: 8.0
+        sellMovingWeek:
+          type: integer
+          example: 50000000
+        buyMovingWeek:
+          type: integer
+          example: 45000000
+    HistoryPoint:
+      type: object
+      properties:
+        sell_price:
+          type: number
+          example: 7.5
+        buy_price:
+          type: number
+          example: 8.1
+        sell_volume:
+          type: integer
+          example: 1234567
+        buy_volume:
+          type: integer
+          example: 987654
+        spread:
+          type: number
+          example: 0.6
+        spread_percent:
+          type: number
+          example: 8.0
+        recorded_at:
+          type: string
+          format: date-time
+          example: "2026-03-05T12:00:00Z"
+    Auction:
+      type: object
+      properties:
+        uuid:
+          type: string
+          example: abc123def456
+        auctioneer:
+          type: string
+          example: b876ec32e396476ba1158438d83c67d4
+        item_name:
+          type: string
+          example: Hyperion
+        item_lore:
+          type: string
+        starting_bid:
+          type: integer
+          example: 900000000
+        highest_bid_amount:
+          type: integer
+          example: 950000000
+        bin:
+          type: boolean
+          example: false
+        start:
+          type: integer
+          description: Unix timestamp (ms)
+        end:
+          type: integer
+          description: Unix timestamp (ms)
+    Profile:
+      type: object
+      properties:
+        profile_id:
+          type: string
+          example: a1b2c3d4e5f6
+        cute_name:
+          type: string
+          example: Strawberry
+        selected:
+          type: boolean
+        members:
+          type: object
+    Item:
+      type: object
+      properties:
+        id:
+          type: string
+          example: HYPERION
+        name:
+          type: string
+          example: Hyperion
+        material:
+          type: string
+          example: IRON_SWORD
+        tier:
+          type: string
+          enum: [COMMON, UNCOMMON, RARE, EPIC, LEGENDARY, MYTHIC, DIVINE, SPECIAL, VERY_SPECIAL]
+          example: LEGENDARY
+    MayorPerk:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Lucky!"
+        description:
+          type: string
+          example: "Gain +25 Pet Luck"
+    FireSale:
+      type: object
+      properties:
+        item_id:
+          type: string
+          example: PET_SKIN_DRAGON_NEON_BLUE
+        start:
+          type: integer
+          description: Unix timestamp (ms)
+        end:
+          type: integer
+          description: Unix timestamp (ms)
+        amount:
+          type: integer
+          example: 200
+        price:
+          type: integer
+          example: 800
+    GuildMember:
+      type: object
+      properties:
+        uuid:
+          type: string
+          example: b876ec32e396476ba1158438d83c67d4
+        rank:
+          type: string
+          example: Guild Master
+        joined:
+          type: integer
+          description: Unix timestamp (ms)
+  responses:
+    Unauthorized:
+      description: Missing, invalid, or revoked API key
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    RateLimited:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+paths:
+  /bazaar:
+    get:
+      operationId: getBazaar
+      summary: Get bazaar data
+      description: Returns bazaar product data. Use the `mode` parameter to control response format.
+      tags: [Bazaar]
+      parameters:
+        - name: mode
+          in: query
+          schema:
+            type: string
+            enum: [full, list, item, flips]
+            default: full
+          description: "Response mode: `full` (all products), `list` (item IDs only), `item` (single item), `flips` (top spread items)"
+        - name: id
+          in: query
+          schema:
+            type: string
+          description: Bazaar item ID (required when mode=item)
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Max results for mode=flips
+      responses:
+        "200":
+          description: Bazaar data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "400":
+          description: Invalid mode or missing id parameter
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /bazaar/trends:
+    get:
+      operationId: getBazaarTrends
+      summary: Get bazaar trends
+      description: Returns pre-computed trend signals for all bazaar items. Updated every 5 minutes.
+      tags: [Bazaar]
+      responses:
+        "200":
+          description: Trend data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      trends:
+                        type: object
+                      updated_at:
+                        type: string
+                        format: date-time
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /bazaar/history:
+    get:
+      operationId: getBazaarHistory
+      summary: Get bazaar price history
+      description: Returns historical price data for a bazaar item. Short ranges return 5-minute snapshots, longer ranges return hourly aggregates.
+      tags: [Bazaar]
+      parameters:
+        - name: item_id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Bazaar item ID (e.g. DIAMOND)
+        - name: range
+          in: query
+          schema:
+            type: string
+            enum: [1h, 24h, 7d, 30d, 90d]
+            default: 24h
+          description: Time range for history
+      responses:
+        "200":
+          description: Historical price data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      item_id:
+                        type: string
+                      range:
+                        type: string
+                      dataPoints:
+                        type: integer
+                      history:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/HistoryPoint"
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "400":
+          description: Missing item_id or invalid range
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          description: Upstream timeout, no cached data available
+  /auctions:
+    get:
+      operationId: getAuctions
+      summary: Get active auctions
+      description: Returns a page of active auctions from the Hypixel API.
+      tags: [Auctions]
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Page number (0-indexed)
+      responses:
+        "200":
+          description: Auction listings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      totalPages:
+                        type: integer
+                      totalAuctions:
+                        type: integer
+                      lastUpdated:
+                        type: integer
+                      auctions:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Auction"
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /auctions/lowest-bins:
+    get:
+      operationId: getLowestBins
+      summary: Get lowest BIN prices
+      description: Returns the lowest Buy It Now price for every item currently listed on the auction house.
+      tags: [Auctions]
+      responses:
+        "200":
+          description: Lowest BIN prices
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      lowestBins:
+                        type: object
+                        additionalProperties:
+                          type: integer
+                        example:
+                          Hyperion: 900000000
+                          "Aspect of the Dragons": 15000000
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /profile/{username}:
+    get:
+      operationId: getProfile
+      summary: Get player profiles
+      description: Returns all SkyBlock profiles for a Minecraft player.
+      tags: [Profiles]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-zA-Z0-9_]{1,16}$"
+          description: Minecraft username
+      responses:
+        "200":
+          description: Player profiles
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      uuid:
+                        type: string
+                      username:
+                        type: string
+                      profiles:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Profile"
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "400":
+          description: Invalid username format
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Player not found
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "502":
+          description: Upstream API error
+        "503":
+          description: Upstream timeout
+  /profile/{username}/networth:
+    get:
+      operationId: getNetworth
+      summary: Get player net worth
+      description: Returns a full net worth breakdown for a player's SkyBlock profile.
+      tags: [Profiles]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Minecraft username
+        - name: profile_id
+          in: query
+          schema:
+            type: string
+          description: Specific profile ID. If omitted, uses the selected profile.
+      responses:
+        "200":
+          description: Net worth breakdown
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      uuid:
+                        type: string
+                      username:
+                        type: string
+                      networth:
+                        type: object
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Player not found
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /profile/{username}/items:
+    get:
+      operationId: getPlayerItems
+      summary: Get player inventory
+      description: Returns parsed inventory items for a player's SkyBlock profile.
+      tags: [Profiles]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Minecraft username
+        - name: profile_id
+          in: query
+          schema:
+            type: string
+          description: Specific profile ID. If omitted, uses the selected profile.
+      responses:
+        "200":
+          description: Player inventory items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      uuid:
+                        type: string
+                      username:
+                        type: string
+                      items:
+                        type: object
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Player not found
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /profile/{username}/museum:
+    get:
+      operationId: getPlayerMuseum
+      summary: Get player museum
+      description: Returns museum data for a player's SkyBlock profile.
+      tags: [Profiles]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Minecraft username
+        - name: profile_id
+          in: query
+          schema:
+            type: string
+          description: Specific profile ID. If omitted, uses the selected profile.
+      responses:
+        "200":
+          description: Museum data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      uuid:
+                        type: string
+                      username:
+                        type: string
+                      museum:
+                        type: object
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Player not found
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /items:
+    get:
+      operationId: getItems
+      summary: Get all items
+      description: Returns the complete catalog of Hypixel SkyBlock items.
+      tags: [Game Data]
+      responses:
+        "200":
+          description: Item catalog
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Item"
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /collections:
+    get:
+      operationId: getCollections
+      summary: Get all collections
+      description: Returns all SkyBlock collections organized by category, with tier requirements and unlock rewards.
+      tags: [Game Data]
+      responses:
+        "200":
+          description: Collection data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      collections:
+                        type: object
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /mayor:
+    get:
+      operationId: getMayor
+      summary: Get current mayor
+      description: Returns the current SkyBlock mayor, their perks, and active election data.
+      tags: [Game Data]
+      parameters: []
+      responses:
+        "200":
+          description: Mayor data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      mayor:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                          key:
+                            type: string
+                          perks:
+                            type: array
+                            items:
+                              $ref: "#/components/schemas/MayorPerk"
+                      current:
+                        type: object
+                      election:
+                        type: object
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /mayor/history:
+    get:
+      operationId: getMayorHistory
+      summary: Get mayor history
+      description: Returns past mayors ordered by most recent first.
+      tags: [Game Data]
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 24
+          description: Number of results
+      responses:
+        "200":
+          description: Mayor history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      history:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                            key:
+                              type: string
+                            perks:
+                              type: array
+                              items:
+                                $ref: "#/components/schemas/MayorPerk"
+                            started_at:
+                              type: string
+                              format: date-time
+                            ended_at:
+                              type: string
+                              format: date-time
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /fire-sales:
+    get:
+      operationId: getFireSales
+      summary: Get active fire sales
+      description: Returns currently active fire sales from the Hypixel API.
+      tags: [Game Data]
+      responses:
+        "200":
+          description: Active fire sales
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      sales:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/FireSale"
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /fire-sales/history:
+    get:
+      operationId: getFireSalesHistory
+      summary: Get fire sale history
+      description: Returns past fire sales from the database.
+      tags: [Game Data]
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+          description: Number of results
+      responses:
+        "200":
+          description: Fire sale history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      history:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            item_id:
+                              type: string
+                            amount:
+                              type: integer
+                            price:
+                              type: integer
+                            recorded_at:
+                              type: string
+                              format: date-time
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /guild:
+    get:
+      operationId: getGuild
+      summary: Look up a guild
+      description: Look up a Hypixel guild by name or by a player's username. One of `name` or `player` is required.
+      tags: [Game Data]
+      parameters:
+        - name: name
+          in: query
+          schema:
+            type: string
+          description: Guild name to search for
+        - name: player
+          in: query
+          schema:
+            type: string
+          description: Minecraft username — returns their guild
+      responses:
+        "200":
+          description: Guild data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      guild:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                          tag:
+                            type: string
+                          created:
+                            type: integer
+                          members:
+                            type: array
+                            items:
+                              $ref: "#/components/schemas/GuildMember"
+                          exp:
+                            type: integer
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "400":
+          description: Neither name nor player provided
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Guild not found
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "502":
+          description: Upstream API error
+  /recipes:
+    get:
+      operationId: getRecipes
+      summary: Get crafting recipes
+      description: Returns crafting recipes for SkyBlock items, sourced from the NEU repository.
+      tags: [Game Data]
+      responses:
+        "200":
+          description: Recipe data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"

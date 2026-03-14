@@ -1,0 +1,14 @@
+Every response follows a consistent JSON envelope:
+
+```json
+{
+  "success": true,
+  "data": { ... },
+  "meta": {
+    "cached": false,
+    "api_version": "v1"
+  }
+}
+```
+
+When serving stale cached data, `meta` includes `"stale": true` and `"age_seconds"`. See [Error Codes](/errors#upstream-timeout-stale-cache) for details.
