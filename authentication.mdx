@@ -21,7 +21,7 @@ All `/v1/*` endpoints require a valid API key. Requests without a key receive a 
 ## Getting an API key
 
 1. Create a free account at [skytools.app](https://skytools.app)
-2. Go to the [Developer Dashboard](https://developers.skytools.app/keys)
+2. Go to the [Developer Dashboard](https://developer.skytools.app/keys)
 3. Sign in with your SkyTools account (email, Google, or Discord)
 4. Click **Create API Key**
 5. Copy your key — it starts with `sk_`
@@ -79,7 +79,7 @@ data = response.json()
   "success": false,
   "error": {
     "code": "UNAUTHORIZED",
-    "message": "API key is required. Get one at https://developers.skytools.app/dashboard"
+    "message": "API key is required. Get one at https://developer.skytools.app/dashboard"
   }
 }
 ```
@@ -100,5 +100,5 @@ data = response.json()
 
 - **Keep your key secret.** Never commit it to source control or expose it in client-side code.
 - **Use environment variables** to store your key in applications.
-- **Revoke compromised keys** immediately in the [Dashboard](https://developers.skytools.app/keys) and create a new one.
+- **Revoke compromised keys** immediately in the [Dashboard](https://developer.skytools.app/keys) and create a new one.
 - **Subscription expiry:** If your subscription lapses, your keys remain valid but revert to Free tier rate limits (60 req/min). There is a 3-day grace period after expiration before the downgrade takes effect.
