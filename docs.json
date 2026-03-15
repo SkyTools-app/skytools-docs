@@ -15,12 +15,12 @@
   "topbarLinks": [
     {
       "name": "Dashboard",
-      "url": "https://developer.skytools.app/dashboard"
+      "url": "https://developers.skytools.app/keys"
     }
   ],
   "topbarCtaButton": {
     "name": "Get API Key",
-    "url": "https://developer.skytools.app/dashboard"
+    "url": "https://developers.skytools.app/keys"
   },
   "anchors": [
     {
