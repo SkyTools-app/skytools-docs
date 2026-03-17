@@ -55,6 +55,7 @@
               "endpoints/bazaar-history",
               "endpoints/auctions",
               "endpoints/lowest-bins",
+              "endpoints/player",
               "endpoints/profile",
               "endpoints/items",
               "endpoints/collections",

@@ -66,6 +66,7 @@ print(f"UUID: {data['uuid']}, Profiles: {len(data['profiles'])}")
         "profile_id": "a1b2c3d4e5f6",
         "cute_name": "Strawberry",
         "selected": true,
+        "skyblockLevel": 312,
         "members": { ... }
       }
     ]
@@ -82,6 +83,7 @@ print(f"UUID: {data['uuid']}, Profiles: {len(data['profiles'])}")
 | `profiles[].profile_id` | string | Unique profile ID |
 | `profiles[].cute_name` | string | Profile fruit name (e.g. "Strawberry") |
 | `profiles[].selected` | boolean | `true` if this is the player's active profile |
+| `profiles[].skyblockLevel` | integer | SkyBlock level for this profile (derived from `leveling.experience / 100`) |
 | `profiles[].members` | object | Profile member data (keyed by UUID) |
 
 ---

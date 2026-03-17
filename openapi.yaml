@@ -171,6 +171,10 @@ components:
           example: Strawberry
         selected:
           type: boolean
+        skyblockLevel:
+          type: integer
+          description: SkyBlock level for this profile (leveling experience / 100)
+          example: 312
         members:
           type: object
     Item:
@@ -216,6 +220,72 @@ components:
         price:
           type: integer
           example: 800
+    PlayerGeneralStats:
+      type: object
+      properties:
+        uuid:
+          type: string
+          example: b876ec32e396476ba1158438d83c67d4
+        username:
+          type: string
+          example: Technoblade
+        rank:
+          type: string
+          example: MVP_PLUS
+        level:
+          type: integer
+          example: 256
+        karma:
+          type: integer
+          example: 12500000
+        achievementPoints:
+          type: integer
+          example: 8450
+        giftsGiven:
+          type: integer
+          example: 15
+        ranksGiven:
+          type: integer
+          example: 3
+        firstLogin:
+          type: integer
+          description: Unix timestamp (ms)
+        lastLogin:
+          type: integer
+          description: Unix timestamp (ms)
+        lastLogout:
+          type: integer
+          description: Unix timestamp (ms)
+    BedWarsModeStats:
+      type: object
+      properties:
+        wins:
+          type: integer
+        losses:
+          type: integer
+        kills:
+          type: integer
+        deaths:
+          type: integer
+        finalKills:
+          type: integer
+        finalDeaths:
+          type: integer
+        bedsBroken:
+          type: integer
+        winstreak:
+          type: integer
+    SkyWarsModeStats:
+      type: object
+      properties:
+        wins:
+          type: integer
+        losses:
+          type: integer
+        kills:
+          type: integer
+        deaths:
+          type: integer
     GuildMember:
       type: object
       properties:
@@ -633,6 +703,192 @@ paths:
                         type: string
                       museum:
                         type: object
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Player not found
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /player/{username}:
+    get:
+      operationId: getPlayer
+      summary: Get player stats
+      description: Returns general Hypixel player stats including network level, karma, rank, achievement points, and login timestamps.
+      tags: [Player]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-zA-Z0-9_]{1,16}$"
+          description: Minecraft username
+      responses:
+        "200":
+          description: Player stats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: "#/components/schemas/PlayerGeneralStats"
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "400":
+          description: Invalid username format
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Player not found
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "502":
+          description: Upstream API error
+        "503":
+          description: Upstream timeout
+  /player/{username}/bedwars:
+    get:
+      operationId: getPlayerBedWars
+      summary: Get BedWars stats
+      description: Returns BedWars stats with overall totals and per-mode breakdowns (solo, doubles, threes, fours).
+      tags: [Player]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Minecraft username
+      responses:
+        "200":
+          description: BedWars stats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      uuid:
+                        type: string
+                      username:
+                        type: string
+                      level:
+                        type: integer
+                        description: BedWars star level
+                      overall:
+                        $ref: "#/components/schemas/BedWarsModeStats"
+                      modes:
+                        type: object
+                        properties:
+                          solo:
+                            $ref: "#/components/schemas/BedWarsModeStats"
+                          doubles:
+                            $ref: "#/components/schemas/BedWarsModeStats"
+                          threes:
+                            $ref: "#/components/schemas/BedWarsModeStats"
+                          fours:
+                            $ref: "#/components/schemas/BedWarsModeStats"
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Player not found
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /player/{username}/skywars:
+    get:
+      operationId: getPlayerSkyWars
+      summary: Get SkyWars stats
+      description: Returns SkyWars stats with overall totals and per-mode breakdowns (solo_normal, solo_insane, team_normal, team_insane).
+      tags: [Player]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Minecraft username
+      responses:
+        "200":
+          description: SkyWars stats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      uuid:
+                        type: string
+                      username:
+                        type: string
+                      level:
+                        type: integer
+                        description: SkyWars level (computed from XP)
+                      overall:
+                        $ref: "#/components/schemas/SkyWarsModeStats"
+                      modes:
+                        type: object
+                        properties:
+                          solo_normal:
+                            $ref: "#/components/schemas/SkyWarsModeStats"
+                          solo_insane:
+                            $ref: "#/components/schemas/SkyWarsModeStats"
+                          team_normal:
+                            $ref: "#/components/schemas/SkyWarsModeStats"
+                          team_insane:
+                            $ref: "#/components/schemas/SkyWarsModeStats"
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Player not found
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /player/{username}/stats:
+    get:
+      operationId: getPlayerAllStats
+      summary: Get all player stats
+      description: Returns all game stats in one response — general info, BedWars, and SkyWars combined. Single Hypixel API call.
+      tags: [Player]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Minecraft username
+      responses:
+        "200":
+          description: Combined player stats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    description: General stats at top level + nested bedwars and skywars objects
                   meta:
                     $ref: "#/components/schemas/Meta"
         "401":

@@ -1,0 +1,273 @@
+---
+title: "Player Stats"
+description: "General Hypixel player stats, BedWars stats, SkyWars stats, and combined stats"
+keywords: ["player stats", "bedwars", "skywars", "hypixel level", "karma", "rank", "network level"]
+---
+
+import AuthHeader from '/snippets/auth-header.mdx';
+
+<AuthHeader />
+
+<Warning>
+Player endpoints rely on an upstream bridge for UUID resolution. If it times out, the API may return stale cached data (up to 30 minutes old). Check `meta.stale` to detect this.
+</Warning>
+
+## GET /v1/player/:username
+
+Returns general Hypixel player stats including network level, karma, rank, achievement points, and login timestamps.
+
+**Cache:** 5 minutes
+
+### Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `username` | string | Minecraft username (1-16 chars, alphanumeric and underscores only) |
+
+### Examples
+
+<CodeGroup>
+```bash cURL
+curl -H "X-API-Key: sk_your_key_here" \
+  "https://api.skytools.app/v1/player/Technoblade"
+```
+
+```javascript JavaScript
+const response = await fetch("https://api.skytools.app/v1/player/Technoblade", {
+  headers: { "X-API-Key": "sk_your_key_here" },
+});
+const { data } = await response.json();
+console.log(`${data.username} is level ${data.level} with rank ${data.rank}`);
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    "https://api.skytools.app/v1/player/Technoblade",
+    headers={"X-API-Key": "sk_your_key_here"},
+)
+data = response.json()["data"]
+print(f"{data['username']}: Level {data['level']}, Rank {data['rank']}")
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "uuid": "b876ec32e396476ba1158438d83c67d4",
+    "username": "Technoblade",
+    "rank": "MVP_PLUS",
+    "level": 256,
+    "karma": 12500000,
+    "achievementPoints": 8450,
+    "giftsGiven": 15,
+    "ranksGiven": 3,
+    "firstLogin": 1420070400000,
+    "lastLogin": 1710600000000,
+    "lastLogout": 1710590000000
+  },
+  "meta": { "cached": false, "api_version": "v1" }
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `uuid` | string | Player's Minecraft UUID (dashless) |
+| `username` | string | Player's current username |
+| `rank` | string | Resolved rank (`MVP_PLUS`, `SUPERSTAR`, `NONE`, etc.) |
+| `level` | integer | Hypixel network level |
+| `karma` | integer | Karma points |
+| `achievementPoints` | integer | Total achievement points |
+| `giftsGiven` | integer | Number of gifts given |
+| `ranksGiven` | integer | Number of ranks gifted to other players |
+| `firstLogin` | integer | First login timestamp (Unix ms) |
+| `lastLogin` | integer | Last login timestamp (Unix ms) |
+| `lastLogout` | integer | Last logout timestamp (Unix ms) |
+
+<Note>The `rank` field uses the Hypixel rank priority chain: `rank` > `monthlyPackageRank` > `newPackageRank` > `packageRank`. Common values include `ADMIN`, `MODERATOR`, `SUPERSTAR` (MVP++), `MVP_PLUS`, `MVP`, `VIP_PLUS`, `VIP`, and `NONE`.</Note>
+
+---
+
+## GET /v1/player/:username/bedwars
+
+Returns BedWars stats with overall totals and per-mode breakdowns.
+
+**Cache:** 5 minutes
+
+### Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `username` | string | Minecraft username |
+
+### Example
+
+```bash
+curl -H "X-API-Key: sk_your_key_here" \
+  "https://api.skytools.app/v1/player/Technoblade/bedwars"
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "uuid": "b876ec32e396476ba1158438d83c67d4",
+    "username": "Technoblade",
+    "level": 245,
+    "overall": {
+      "wins": 1200, "losses": 800,
+      "kills": 5000, "deaths": 3000,
+      "finalKills": 2500, "finalDeaths": 1000,
+      "bedsBroken": 1800, "winstreak": 5
+    },
+    "modes": {
+      "solo": { "wins": 300, "losses": 200, "kills": 1200, "deaths": 800, "finalKills": 600, "finalDeaths": 250, "bedsBroken": 450, "winstreak": 2 },
+      "doubles": { "wins": 400, "losses": 250, "kills": 1600, "deaths": 900, "finalKills": 800, "finalDeaths": 300, "bedsBroken": 550, "winstreak": 3 },
+      "threes": { "wins": 250, "losses": 180, "kills": 1100, "deaths": 650, "finalKills": 550, "finalDeaths": 220, "bedsBroken": 400, "winstreak": 0 },
+      "fours": { "wins": 250, "losses": 170, "kills": 1100, "deaths": 650, "finalKills": 550, "finalDeaths": 230, "bedsBroken": 400, "winstreak": 0 }
+    }
+  },
+  "meta": { "cached": false, "api_version": "v1" }
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `level` | integer | BedWars star level (from achievements) |
+| `overall` | object | Aggregated stats across all modes |
+| `modes` | object | Per-mode stats: `solo`, `doubles`, `threes`, `fours` |
+| `*.wins` | integer | Games won |
+| `*.losses` | integer | Games lost |
+| `*.kills` | integer | Kills |
+| `*.deaths` | integer | Deaths |
+| `*.finalKills` | integer | Final kills |
+| `*.finalDeaths` | integer | Final deaths |
+| `*.bedsBroken` | integer | Beds destroyed |
+| `*.winstreak` | integer | Current winstreak |
+
+---
+
+## GET /v1/player/:username/skywars
+
+Returns SkyWars stats with overall totals and per-mode breakdowns.
+
+**Cache:** 5 minutes
+
+### Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `username` | string | Minecraft username |
+
+### Example
+
+```bash
+curl -H "X-API-Key: sk_your_key_here" \
+  "https://api.skytools.app/v1/player/Technoblade/skywars"
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "uuid": "b876ec32e396476ba1158438d83c67d4",
+    "username": "Technoblade",
+    "level": 18,
+    "overall": {
+      "wins": 800, "losses": 600,
+      "kills": 3000, "deaths": 2000
+    },
+    "modes": {
+      "solo_normal": { "wins": 250, "losses": 180, "kills": 900, "deaths": 600 },
+      "solo_insane": { "wins": 200, "losses": 150, "kills": 750, "deaths": 500 },
+      "team_normal": { "wins": 200, "losses": 150, "kills": 700, "deaths": 500 },
+      "team_insane": { "wins": 150, "losses": 120, "kills": 650, "deaths": 400 }
+    }
+  },
+  "meta": { "cached": false, "api_version": "v1" }
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `level` | integer | SkyWars level (computed from XP) |
+| `overall` | object | Aggregated stats across all modes |
+| `modes` | object | Per-mode stats: `solo_normal`, `solo_insane`, `team_normal`, `team_insane` |
+| `*.wins` | integer | Games won |
+| `*.losses` | integer | Games lost |
+| `*.kills` | integer | Kills |
+| `*.deaths` | integer | Deaths |
+
+---
+
+## GET /v1/player/:username/stats
+
+Returns all game stats in one response: general info + BedWars + SkyWars combined. This is the most efficient way to get all player data in a single request.
+
+**Cache:** 5 minutes
+
+### Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `username` | string | Minecraft username |
+
+### Example
+
+```bash
+curl -H "X-API-Key: sk_your_key_here" \
+  "https://api.skytools.app/v1/player/Technoblade/stats"
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "uuid": "b876ec32e396476ba1158438d83c67d4",
+    "username": "Technoblade",
+    "rank": "MVP_PLUS",
+    "level": 256,
+    "karma": 12500000,
+    "achievementPoints": 8450,
+    "giftsGiven": 15,
+    "ranksGiven": 3,
+    "firstLogin": 1420070400000,
+    "lastLogin": 1710600000000,
+    "lastLogout": 1710590000000,
+    "bedwars": {
+      "level": 245,
+      "overall": { "wins": 1200, "losses": 800, "kills": 5000, "deaths": 3000, "finalKills": 2500, "finalDeaths": 1000, "bedsBroken": 1800, "winstreak": 5 },
+      "modes": { "solo": { ... }, "doubles": { ... }, "threes": { ... }, "fours": { ... } }
+    },
+    "skywars": {
+      "level": 18,
+      "overall": { "wins": 800, "losses": 600, "kills": 3000, "deaths": 2000 },
+      "modes": { "solo_normal": { ... }, "solo_insane": { ... }, "team_normal": { ... }, "team_insane": { ... } }
+    }
+  },
+  "meta": { "cached": false, "api_version": "v1" }
+}
+```
+
+<Tip>The `/stats` endpoint makes a single Hypixel API call — the same as any individual player endpoint. Use it when you need multiple stat categories to avoid redundant requests.</Tip>
+
+---
+
+### Errors (all player endpoints)
+
+| Code | HTTP Status | When |
+|---|---|---|
+| `BAD_REQUEST` | 400 | Invalid username format (must be 1-16 chars, `[a-zA-Z0-9_]`) |
+| `NOT_FOUND` | 404 | Player not found on Mojang/Hypixel |
+| `UPSTREAM_ERROR` | 502 | Hypixel or Mojang API returned an error |
+| `TIMEOUT` | 503 | Upstream timed out and no cached data available |
