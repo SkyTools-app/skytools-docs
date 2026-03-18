@@ -232,15 +232,27 @@ components:
         rank:
           type: string
           example: MVP_PLUS
+          description: Resolved rank code
+        rankFormatted:
+          type: string
+          example: MVP+
+          description: Human-readable rank name
         level:
-          type: integer
-          example: 256
+          type: number
+          example: 256.72
+          description: Precise network level (computed from XP)
         karma:
           type: integer
           example: 12500000
         achievementPoints:
           type: integer
           example: 8450
+        questsCompleted:
+          type: integer
+          description: Total quests completed (computed from achievements)
+        challengesCompleted:
+          type: integer
+          description: Total challenges completed (computed from achievements)
         giftsGiven:
           type: integer
           example: 15
@@ -256,6 +268,12 @@ components:
         lastLogout:
           type: integer
           description: Unix timestamp (ms)
+        online:
+          type: boolean
+          description: Whether player is online (computed from lastLogin > lastLogout)
+        totalExp:
+          type: integer
+          description: Raw network experience points
     BedWarsModeStats:
       type: object
       properties:
@@ -263,18 +281,43 @@ components:
           type: integer
         losses:
           type: integer
+        winRate:
+          type: number
+          nullable: true
+          description: Win percentage (computed)
+        wlr:
+          type: number
+          nullable: true
+          description: Win/Loss ratio (computed)
         kills:
           type: integer
         deaths:
           type: integer
+        kdr:
+          type: number
+          nullable: true
+          description: Kill/Death ratio (computed)
         finalKills:
           type: integer
         finalDeaths:
           type: integer
+        fkdr:
+          type: number
+          nullable: true
+          description: Final Kill/Death ratio (computed)
         bedsBroken:
           type: integer
+        bedsLost:
+          type: integer
+        bblr:
+          type: number
+          nullable: true
+          description: Beds Broken/Lost ratio (computed)
         winstreak:
           type: integer
+        gamesPlayed:
+          type: integer
+          description: Total games played (computed)
     SkyWarsModeStats:
       type: object
       properties:
@@ -282,10 +325,25 @@ components:
           type: integer
         losses:
           type: integer
+        winRate:
+          type: number
+          nullable: true
+          description: Win percentage (computed)
+        wlr:
+          type: number
+          nullable: true
+          description: Win/Loss ratio (computed)
         kills:
           type: integer
         deaths:
           type: integer
+        kdr:
+          type: number
+          nullable: true
+          description: Kill/Death ratio (computed)
+        gamesPlayed:
+          type: integer
+          description: Total games played (computed)
     GuildMember:
       type: object
       properties:
@@ -756,7 +814,7 @@ paths:
     get:
       operationId: getPlayerBedWars
       summary: Get BedWars stats
-      description: Returns BedWars stats with overall totals and per-mode breakdowns (solo, doubles, threes, fours).
+      description: Returns BedWars stats with computed ratios (KDR, FKDR, WLR, BBLR), win rates, prestige tier, and per-mode breakdowns.
       tags: [Player]
       parameters:
         - name: username
@@ -786,6 +844,11 @@ paths:
                       level:
                         type: integer
                         description: BedWars star level
+                      prestige:
+                        type: string
+                        description: "Computed prestige tier: None, Stone, Iron, Gold, Diamond, Emerald"
+                      coins:
+                        type: integer
                       overall:
                         $ref: "#/components/schemas/BedWarsModeStats"
                       modes:
@@ -811,7 +874,7 @@ paths:
     get:
       operationId: getPlayerSkyWars
       summary: Get SkyWars stats
-      description: Returns SkyWars stats with overall totals and per-mode breakdowns (solo_normal, solo_insane, team_normal, team_insane).
+      description: Returns SkyWars stats with computed ratios (KDR, WLR), win rates, prestige tier, and per-mode breakdowns.
       tags: [Player]
       parameters:
         - name: username
@@ -841,6 +904,13 @@ paths:
                       level:
                         type: integer
                         description: SkyWars level (computed from XP)
+                      prestige:
+                        type: string
+                        description: "Computed prestige tier: None, Stone, Iron, Gold, Rare, Epic, Legendary, Mythic"
+                      coins:
+                        type: integer
+                      souls:
+                        type: integer
                       overall:
                         $ref: "#/components/schemas/SkyWarsModeStats"
                       modes:
@@ -866,7 +936,7 @@ paths:
     get:
       operationId: getPlayerAllStats
       summary: Get all player stats
-      description: Returns all game stats in one response — general info, BedWars, and SkyWars combined. Single Hypixel API call.
+      description: Returns all game stats in one response — general info, BedWars, and SkyWars combined with computed ratios, prestige tiers, and derived fields. Single Hypixel API call.
       tags: [Player]
       parameters:
         - name: username

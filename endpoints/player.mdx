@@ -1,7 +1,7 @@
 ---
 title: "Player Stats"
 description: "General Hypixel player stats, BedWars stats, SkyWars stats, and combined stats"
-keywords: ["player stats", "bedwars", "skywars", "hypixel level", "karma", "rank", "network level"]
+keywords: ["player stats", "bedwars", "skywars", "hypixel level", "karma", "rank", "network level", "kdr", "fkdr", "win rate"]
 ---
 
 import AuthHeader from '/snippets/auth-header.mdx';
@@ -14,7 +14,7 @@ Player endpoints rely on an upstream bridge for UUID resolution. If it times out
 
 ## GET /v1/player/:username
 
-Returns general Hypixel player stats including network level, karma, rank, achievement points, and login timestamps.
+Returns general Hypixel player stats including network level, karma, rank, achievement points, online status, and login timestamps. All fields are computed/derived from raw Hypixel data.
 
 **Cache:** 5 minutes
 
@@ -37,7 +37,8 @@ const response = await fetch("https://api.skytools.app/v1/player/Technoblade", {
   headers: { "X-API-Key": "sk_your_key_here" },
 });
 const { data } = await response.json();
-console.log(`${data.username} is level ${data.level} with rank ${data.rank}`);
+console.log(`${data.username} [${data.rankFormatted}] Level ${data.level}`);
+console.log(`Online: ${data.online}`);
 ```
 
 ```python Python
@@ -48,7 +49,7 @@ response = requests.get(
     headers={"X-API-Key": "sk_your_key_here"},
 )
 data = response.json()["data"]
-print(f"{data['username']}: Level {data['level']}, Rank {data['rank']}")
+print(f"{data['username']} [{data['rankFormatted']}] Level {data['level']}")
 ```
 </CodeGroup>
 
@@ -61,14 +62,19 @@ print(f"{data['username']}: Level {data['level']}, Rank {data['rank']}")
     "uuid": "b876ec32e396476ba1158438d83c67d4",
     "username": "Technoblade",
     "rank": "MVP_PLUS",
-    "level": 256,
+    "rankFormatted": "MVP+",
+    "level": 256.72,
     "karma": 12500000,
     "achievementPoints": 8450,
+    "questsCompleted": 1200,
+    "challengesCompleted": 5000,
     "giftsGiven": 15,
     "ranksGiven": 3,
     "firstLogin": 1420070400000,
     "lastLogin": 1710600000000,
-    "lastLogout": 1710590000000
+    "lastLogout": 1710590000000,
+    "online": true,
+    "totalExp": 84250000
   },
   "meta": { "cached": false, "api_version": "v1" }
 }
@@ -78,23 +84,28 @@ print(f"{data['username']}: Level {data['level']}, Rank {data['rank']}")
 |---|---|---|
 | `uuid` | string | Player's Minecraft UUID (dashless) |
 | `username` | string | Player's current username |
-| `rank` | string | Resolved rank (`MVP_PLUS`, `SUPERSTAR`, `NONE`, etc.) |
-| `level` | integer | Hypixel network level |
+| `rank` | string | Resolved rank code (`MVP_PLUS`, `SUPERSTAR`, `NONE`, etc.) |
+| `rankFormatted` | string | Human-readable rank name (`MVP+`, `MVP++`, `VIP`, `Default`, etc.) |
+| `level` | number | Precise Hypixel network level (computed from XP) |
 | `karma` | integer | Karma points |
 | `achievementPoints` | integer | Total achievement points |
+| `questsCompleted` | integer | Total quests completed (computed from achievements) |
+| `challengesCompleted` | integer | Total challenges completed (computed from achievements) |
 | `giftsGiven` | integer | Number of gifts given |
 | `ranksGiven` | integer | Number of ranks gifted to other players |
 | `firstLogin` | integer | First login timestamp (Unix ms) |
 | `lastLogin` | integer | Last login timestamp (Unix ms) |
 | `lastLogout` | integer | Last logout timestamp (Unix ms) |
+| `online` | boolean | Whether the player is currently online (computed: `lastLogin > lastLogout`) |
+| `totalExp` | integer | Raw network experience points |
 
-<Note>The `rank` field uses the Hypixel rank priority chain: `rank` > `monthlyPackageRank` > `newPackageRank` > `packageRank`. Common values include `ADMIN`, `MODERATOR`, `SUPERSTAR` (MVP++), `MVP_PLUS`, `MVP`, `VIP_PLUS`, `VIP`, and `NONE`.</Note>
+<Note>The `rank` field uses the Hypixel rank priority chain: `rank` > `monthlyPackageRank` > `newPackageRank` > `packageRank`. The `rankFormatted` field converts this to a human-readable name (e.g., `SUPERSTAR` becomes `MVP++`).</Note>
 
 ---
 
 ## GET /v1/player/:username/bedwars
 
-Returns BedWars stats with overall totals and per-mode breakdowns.
+Returns BedWars stats with computed ratios, win rates, prestige tier, and per-mode breakdowns.
 
 **Cache:** 5 minutes
 
@@ -120,17 +131,21 @@ curl -H "X-API-Key: sk_your_key_here" \
     "uuid": "b876ec32e396476ba1158438d83c67d4",
     "username": "Technoblade",
     "level": 245,
+    "prestige": "Stone",
+    "coins": 850000,
     "overall": {
       "wins": 1200, "losses": 800,
-      "kills": 5000, "deaths": 3000,
-      "finalKills": 2500, "finalDeaths": 1000,
-      "bedsBroken": 1800, "winstreak": 5
+      "winRate": 60.0, "wlr": 1.5,
+      "kills": 5000, "deaths": 3000, "kdr": 1.67,
+      "finalKills": 2500, "finalDeaths": 1000, "fkdr": 2.5,
+      "bedsBroken": 1800, "bedsLost": 900, "bblr": 2.0,
+      "winstreak": 5, "gamesPlayed": 2000
     },
     "modes": {
-      "solo": { "wins": 300, "losses": 200, "kills": 1200, "deaths": 800, "finalKills": 600, "finalDeaths": 250, "bedsBroken": 450, "winstreak": 2 },
-      "doubles": { "wins": 400, "losses": 250, "kills": 1600, "deaths": 900, "finalKills": 800, "finalDeaths": 300, "bedsBroken": 550, "winstreak": 3 },
-      "threes": { "wins": 250, "losses": 180, "kills": 1100, "deaths": 650, "finalKills": 550, "finalDeaths": 220, "bedsBroken": 400, "winstreak": 0 },
-      "fours": { "wins": 250, "losses": 170, "kills": 1100, "deaths": 650, "finalKills": 550, "finalDeaths": 230, "bedsBroken": 400, "winstreak": 0 }
+      "solo": { "wins": 300, "losses": 200, "winRate": 60.0, "wlr": 1.5, "kills": 1200, "deaths": 800, "kdr": 1.5, "finalKills": 600, "finalDeaths": 250, "fkdr": 2.4, "bedsBroken": 450, "bedsLost": 220, "bblr": 2.05, "winstreak": 2, "gamesPlayed": 500 },
+      "doubles": { ... },
+      "threes": { ... },
+      "fours": { ... }
     }
   },
   "meta": { "cached": false, "api_version": "v1" }
@@ -140,22 +155,31 @@ curl -H "X-API-Key: sk_your_key_here" \
 | Field | Type | Description |
 |---|---|---|
 | `level` | integer | BedWars star level (from achievements) |
-| `overall` | object | Aggregated stats across all modes |
-| `modes` | object | Per-mode stats: `solo`, `doubles`, `threes`, `fours` |
+| `prestige` | string | Computed prestige tier: `None`, `Stone`, `Iron`, `Gold`, `Diamond`, `Emerald` |
+| `coins` | integer | BedWars coins |
 | `*.wins` | integer | Games won |
 | `*.losses` | integer | Games lost |
+| `*.winRate` | number \| null | Win percentage (computed: `wins / gamesPlayed * 100`) |
+| `*.wlr` | number \| null | Win/Loss ratio (computed) |
 | `*.kills` | integer | Kills |
 | `*.deaths` | integer | Deaths |
+| `*.kdr` | number \| null | Kill/Death ratio (computed) |
 | `*.finalKills` | integer | Final kills |
 | `*.finalDeaths` | integer | Final deaths |
+| `*.fkdr` | number \| null | Final Kill/Death ratio (computed) |
 | `*.bedsBroken` | integer | Beds destroyed |
+| `*.bedsLost` | integer | Beds lost |
+| `*.bblr` | number \| null | Beds Broken/Lost ratio (computed) |
 | `*.winstreak` | integer | Current winstreak |
+| `*.gamesPlayed` | integer | Total games played (computed: `wins + losses`) |
+
+<Note>Ratios return `null` when the divisor is 0 (e.g., 0 deaths), or `Infinity` when the numerator is positive but the divisor is 0 (e.g., 5 wins, 0 losses). Modes: `solo`, `doubles`, `threes`, `fours`.</Note>
 
 ---
 
 ## GET /v1/player/:username/skywars
 
-Returns SkyWars stats with overall totals and per-mode breakdowns.
+Returns SkyWars stats with computed ratios, win rates, prestige tier, and per-mode breakdowns.
 
 **Cache:** 5 minutes
 
@@ -181,15 +205,20 @@ curl -H "X-API-Key: sk_your_key_here" \
     "uuid": "b876ec32e396476ba1158438d83c67d4",
     "username": "Technoblade",
     "level": 18,
+    "prestige": "Iron",
+    "coins": 250000,
+    "souls": 450,
     "overall": {
       "wins": 800, "losses": 600,
-      "kills": 3000, "deaths": 2000
+      "winRate": 57.14, "wlr": 1.33,
+      "kills": 3000, "deaths": 2000, "assists": 500,
+      "kdr": 1.5, "gamesPlayed": 1400
     },
     "modes": {
-      "solo_normal": { "wins": 250, "losses": 180, "kills": 900, "deaths": 600 },
-      "solo_insane": { "wins": 200, "losses": 150, "kills": 750, "deaths": 500 },
-      "team_normal": { "wins": 200, "losses": 150, "kills": 700, "deaths": 500 },
-      "team_insane": { "wins": 150, "losses": 120, "kills": 650, "deaths": 400 }
+      "solo_normal": { "wins": 250, "losses": 180, "winRate": 58.14, "wlr": 1.39, "kills": 900, "deaths": 600, "kdr": 1.5, "gamesPlayed": 430 },
+      "solo_insane": { ... },
+      "team_normal": { ... },
+      "team_insane": { ... }
     }
   },
   "meta": { "cached": false, "api_version": "v1" }
@@ -199,12 +228,20 @@ curl -H "X-API-Key: sk_your_key_here" \
 | Field | Type | Description |
 |---|---|---|
 | `level` | integer | SkyWars level (computed from XP) |
-| `overall` | object | Aggregated stats across all modes |
-| `modes` | object | Per-mode stats: `solo_normal`, `solo_insane`, `team_normal`, `team_insane` |
+| `prestige` | string | Computed prestige tier: `None`, `Stone`, `Iron`, `Gold`, `Rare`, `Epic`, `Legendary`, `Mythic` |
+| `coins` | integer | SkyWars coins |
+| `souls` | integer | SkyWars souls |
 | `*.wins` | integer | Games won |
 | `*.losses` | integer | Games lost |
+| `*.winRate` | number \| null | Win percentage (computed: `wins / gamesPlayed * 100`) |
+| `*.wlr` | number \| null | Win/Loss ratio (computed) |
 | `*.kills` | integer | Kills |
 | `*.deaths` | integer | Deaths |
+| `*.assists` | integer | Assists (overall only) |
+| `*.kdr` | number \| null | Kill/Death ratio (computed) |
+| `*.gamesPlayed` | integer | Total games played (computed: `wins + losses`) |
+
+<Note>Modes: `solo_normal`, `solo_insane`, `team_normal`, `team_insane`.</Note>
 
 ---
 
@@ -236,22 +273,32 @@ curl -H "X-API-Key: sk_your_key_here" \
     "uuid": "b876ec32e396476ba1158438d83c67d4",
     "username": "Technoblade",
     "rank": "MVP_PLUS",
-    "level": 256,
+    "rankFormatted": "MVP+",
+    "level": 256.72,
     "karma": 12500000,
     "achievementPoints": 8450,
+    "questsCompleted": 1200,
+    "challengesCompleted": 5000,
     "giftsGiven": 15,
     "ranksGiven": 3,
     "firstLogin": 1420070400000,
     "lastLogin": 1710600000000,
     "lastLogout": 1710590000000,
+    "online": true,
+    "totalExp": 84250000,
     "bedwars": {
       "level": 245,
-      "overall": { "wins": 1200, "losses": 800, "kills": 5000, "deaths": 3000, "finalKills": 2500, "finalDeaths": 1000, "bedsBroken": 1800, "winstreak": 5 },
+      "prestige": "Stone",
+      "coins": 850000,
+      "overall": { "wins": 1200, "losses": 800, "winRate": 60.0, "wlr": 1.5, "kills": 5000, "deaths": 3000, "kdr": 1.67, "finalKills": 2500, "finalDeaths": 1000, "fkdr": 2.5, "bedsBroken": 1800, "bedsLost": 900, "bblr": 2.0, "winstreak": 5, "gamesPlayed": 2000 },
       "modes": { "solo": { ... }, "doubles": { ... }, "threes": { ... }, "fours": { ... } }
     },
     "skywars": {
       "level": 18,
-      "overall": { "wins": 800, "losses": 600, "kills": 3000, "deaths": 2000 },
+      "prestige": "Iron",
+      "coins": 250000,
+      "souls": 450,
+      "overall": { "wins": 800, "losses": 600, "winRate": 57.14, "wlr": 1.33, "kills": 3000, "deaths": 2000, "assists": 500, "kdr": 1.5, "gamesPlayed": 1400 },
       "modes": { "solo_normal": { ... }, "solo_insane": { ... }, "team_normal": { ... }, "team_insane": { ... } }
     }
   },
