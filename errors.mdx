@@ -20,18 +20,33 @@ All errors return a consistent structure:
 
 ## Error reference
 
+### Client errors
+
 | Code | HTTP Status | Description |
 |---|---|---|
 | `BAD_REQUEST` | 400 | Missing or invalid query/path parameters |
+| `MISSING_PARAMETER` | 400 | A required parameter was not provided |
 | `VALIDATION` | 400 | Request body failed validation (wrong types, missing required fields) |
 | `UNAUTHORIZED` | 401 | Missing, invalid, or revoked API key |
 | `FORBIDDEN` | 403 | Valid key but insufficient permissions |
 | `LIMIT_REACHED` | 403 | Tier feature limit reached (e.g. max portfolio entries) |
 | `NOT_FOUND` | 404 | Resource not found or route doesn't exist |
+| `PLAYER_NOT_FOUND` | 404 | No Minecraft account exists with that username |
+| `GUILD_NOT_FOUND` | 404 | No guild found matching the query |
+| `NO_SKYBLOCK_DATA` | 404 | Player exists but has no SkyBlock profiles |
 | `RATE_LIMITED` | 429 | Rate limit exceeded — check `Retry-After` header |
+
+### Server / upstream errors
+
+| Code | HTTP Status | Description |
+|---|---|---|
+| `API_SETTINGS_DISABLED` | 403 | The player has disabled API access in their Hypixel settings |
 | `INTERNAL_ERROR` | 500 | Unexpected server error |
 | `DB_ERROR` | 500 | Database operation failed |
-| `UPSTREAM_ERROR` | 502 | Upstream API (Hypixel or Mojang) returned an error |
+| `UPSTREAM_ERROR` | 502 | Upstream API (Hypixel or Mojang) returned an unspecified error |
+| `UPSTREAM_AUTH_ERROR` | 502 | Upstream API key is invalid (transient — retry shortly) |
+| `UPSTREAM_RATE_LIMITED` | 502 | Hypixel API rate limit exhausted — may include `Retry-After` header |
+| `MOJANG_UNAVAILABLE` | 502 | Minecraft username service is temporarily unavailable |
 | `TIMEOUT` | 503 | Upstream service timed out |
 
 ## Common errors
@@ -91,6 +106,76 @@ All errors return a consistent structure:
 ```
 
 **Fix:** Wait for the duration in the `Retry-After` header. See [Rate Limits](/rate-limits) for optimization tips.
+
+### Player not found
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "PLAYER_NOT_FOUND",
+    "message": "Player 'NotARealPlayer' not found"
+  }
+}
+```
+
+**Fix:** Check the spelling of the Minecraft username. The username must be a current, valid Mojang account.
+
+### No SkyBlock data
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "NO_SKYBLOCK_DATA",
+    "message": "Player 'Technoblade' has no SkyBlock profiles"
+  }
+}
+```
+
+**Fix:** The player exists on Minecraft but has never played Hypixel SkyBlock, or has deleted all their profiles.
+
+### Guild not found
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "GUILD_NOT_FOUND",
+    "message": "Guild 'FakeGuild' not found"
+  }
+}
+```
+
+**Fix:** Check the guild name spelling or try searching by player UUID instead.
+
+### API settings disabled
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "API_SETTINGS_DISABLED",
+    "message": "This player has their API access disabled in Hypixel settings."
+  }
+}
+```
+
+**Fix:** The player must enable "API" in their Hypixel settings (`/settings` in-game → API). This is not something you can fix as an API consumer.
+
+### Mojang service unavailable
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "MOJANG_UNAVAILABLE",
+    "message": "Minecraft username service is temporarily unavailable. Please try again later."
+  }
+}
+```
+
+**Fix:** The Mojang API is experiencing issues. Retry after a short delay. This is a transient error.
 
 ### Route not found
 

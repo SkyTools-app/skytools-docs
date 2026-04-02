@@ -369,6 +369,30 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
+    PlayerNotFound:
+      description: "Player not found — `PLAYER_NOT_FOUND` (username doesn't exist), `NO_SKYBLOCK_DATA` (no SkyBlock profiles), or `API_SETTINGS_DISABLED` (player has API off)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    GuildNotFound:
+      description: "Guild not found — `GUILD_NOT_FOUND` (no guild matches query) or `PLAYER_NOT_FOUND` (player lookup failed)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    UpstreamError:
+      description: "Upstream error — `UPSTREAM_ERROR`, `UPSTREAM_AUTH_ERROR`, `UPSTREAM_RATE_LIMITED`, or `MOJANG_UNAVAILABLE`"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Timeout:
+      description: "Upstream timeout — `TIMEOUT`. May return stale cached data instead (check `meta.stale`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
 paths:
   /bazaar:
     get:
@@ -623,14 +647,16 @@ paths:
           description: Invalid username format
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Player has API settings disabled (`API_SETTINGS_DISABLED`)
         "404":
-          description: Player not found
+          $ref: "#/components/responses/PlayerNotFound"
         "429":
           $ref: "#/components/responses/RateLimited"
         "502":
-          description: Upstream API error
+          $ref: "#/components/responses/UpstreamError"
         "503":
-          description: Upstream timeout
+          $ref: "#/components/responses/Timeout"
   /profile/{username}/networth:
     get:
       operationId: getNetworth
@@ -673,10 +699,16 @@ paths:
                     $ref: "#/components/schemas/Meta"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Player has API settings disabled (`API_SETTINGS_DISABLED`)
         "404":
-          description: Player not found
+          $ref: "#/components/responses/PlayerNotFound"
         "429":
           $ref: "#/components/responses/RateLimited"
+        "502":
+          $ref: "#/components/responses/UpstreamError"
+        "503":
+          $ref: "#/components/responses/Timeout"
   /profile/{username}/items:
     get:
       operationId: getPlayerItems
@@ -719,10 +751,16 @@ paths:
                     $ref: "#/components/schemas/Meta"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Player has API settings disabled (`API_SETTINGS_DISABLED`)
         "404":
-          description: Player not found
+          $ref: "#/components/responses/PlayerNotFound"
         "429":
           $ref: "#/components/responses/RateLimited"
+        "502":
+          $ref: "#/components/responses/UpstreamError"
+        "503":
+          $ref: "#/components/responses/Timeout"
   /profile/{username}/museum:
     get:
       operationId: getPlayerMuseum
@@ -765,10 +803,16 @@ paths:
                     $ref: "#/components/schemas/Meta"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Player has API settings disabled (`API_SETTINGS_DISABLED`)
         "404":
-          description: Player not found
+          $ref: "#/components/responses/PlayerNotFound"
         "429":
           $ref: "#/components/responses/RateLimited"
+        "502":
+          $ref: "#/components/responses/UpstreamError"
+        "503":
+          $ref: "#/components/responses/Timeout"
   /player/{username}:
     get:
       operationId: getPlayer
@@ -803,13 +847,13 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Player not found
+          $ref: "#/components/responses/PlayerNotFound"
         "429":
           $ref: "#/components/responses/RateLimited"
         "502":
-          description: Upstream API error
+          $ref: "#/components/responses/UpstreamError"
         "503":
-          description: Upstream timeout
+          $ref: "#/components/responses/Timeout"
   /player/{username}/bedwars:
     get:
       operationId: getPlayerBedWars
@@ -867,9 +911,13 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Player not found
+          $ref: "#/components/responses/PlayerNotFound"
         "429":
           $ref: "#/components/responses/RateLimited"
+        "502":
+          $ref: "#/components/responses/UpstreamError"
+        "503":
+          $ref: "#/components/responses/Timeout"
   /player/{username}/skywars:
     get:
       operationId: getPlayerSkyWars
@@ -929,9 +977,13 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Player not found
+          $ref: "#/components/responses/PlayerNotFound"
         "429":
           $ref: "#/components/responses/RateLimited"
+        "502":
+          $ref: "#/components/responses/UpstreamError"
+        "503":
+          $ref: "#/components/responses/Timeout"
   /player/{username}/stats:
     get:
       operationId: getPlayerAllStats
@@ -964,9 +1016,13 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Player not found
+          $ref: "#/components/responses/PlayerNotFound"
         "429":
           $ref: "#/components/responses/RateLimited"
+        "502":
+          $ref: "#/components/responses/UpstreamError"
+        "503":
+          $ref: "#/components/responses/Timeout"
   /items:
     get:
       operationId: getItems
@@ -1253,11 +1309,11 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Guild not found
+          $ref: "#/components/responses/GuildNotFound"
         "429":
           $ref: "#/components/responses/RateLimited"
         "502":
-          description: Upstream API error
+          $ref: "#/components/responses/UpstreamError"
   /recipes:
     get:
       operationId: getRecipes
