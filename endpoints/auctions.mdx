@@ -90,3 +90,147 @@ print(f"Page {data['page']} of {data['totalPages']}")
 | `auctions[].highest_bid_amount` | number | Current highest bid (0 if no bids) |
 | `auctions[].bin` | boolean | `true` if Buy It Now auction |
 | `auctions[].start` / `end` | number | Auction start/end timestamps (ms) |
+
+<Tip>`GET /v1/auctions` returns a single raw Hypixel page with no filtering. To search, filter and sort across the **entire** auction house, use `GET /v1/auctions/search` below.</Tip>
+
+---
+
+## GET /v1/auctions/search
+
+Server-side search, filter, sort and pagination across the full auction house. Backed by an in-memory index of every live auction, refreshed every ~60 seconds.
+
+**Cache:** 30 seconds
+
+### Query parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `q` | string | — | Search text (matched against item name + reforge/attributes; color codes and symbols ignored) |
+| `category` | string | — | Filter by category (e.g. `weapon`, `armor`, `accessories`, `consumables`, `blocks`, `misc`) |
+| `tier` | string | — | Filter by rarity (e.g. `common`, `rare`, `epic`, `legendary`, `mythic`) |
+| `auctionType` | string | `all` | `all`, `bin` (Buy It Now only), or `auction` (bid auctions only) |
+| `minPrice` | integer | `0` | Minimum effective price (0 = no minimum) |
+| `maxPrice` | integer | `0` | Maximum effective price (0 = no maximum) |
+| `sortBy` | string | `time` | `time` (ending soonest), `price`, or `name` |
+| `sortOrder` | string | `asc` | `asc` or `desc` |
+| `page` | integer | `0` | Page number (0-indexed) |
+| `limit` | integer | `60` | Results per page (1–100) |
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -H "X-API-Key: sk_your_key_here" \
+  "https://api.skytools.app/v1/auctions/search?q=hyperion&auctionType=bin&sortBy=price&sortOrder=asc"
+```
+
+```javascript JavaScript
+const params = new URLSearchParams({
+  q: "hyperion",
+  auctionType: "bin",
+  sortBy: "price",
+  sortOrder: "asc",
+});
+const response = await fetch(
+  `https://api.skytools.app/v1/auctions/search?${params}`,
+  { headers: { "X-API-Key": "sk_your_key_here" } },
+);
+const { data } = await response.json();
+console.log(`${data.totalAuctions} matches`);
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "auctions": [
+      {
+        "uuid": "abc123def456",
+        "auctioneer": "b876ec32e396476ba1158438d83c67d4",
+        "profile_id": "a1b2c3d4e5f6",
+        "start": 1706000000000,
+        "end": 1706100000000,
+        "item_name": "Hyperion",
+        "item_lore": "...",
+        "extra": "Hyperion Heroic",
+        "category": "weapon",
+        "tier": "LEGENDARY",
+        "starting_bid": 900000000,
+        "highest_bid_amount": 0,
+        "bin": true,
+        "claimed": false
+      }
+    ],
+    "page": 0,
+    "limit": 60,
+    "totalAuctions": 18,
+    "totalPages": 1,
+    "totalLive": 41032,
+    "lastUpdated": 1706000000000
+  },
+  "meta": { "cached": false, "api_version": "v1" }
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `auctions` | array | Matching auctions for this page |
+| `auctions[].extra` | string | Reforge / attribute text used for searching |
+| `auctions[].category` / `tier` | string | Item category and rarity |
+| `auctions[].claimed` | boolean | Whether the auction has been claimed |
+| `page` / `limit` | integer | Echoed pagination |
+| `totalAuctions` | integer | Total matches across all pages |
+| `totalPages` | integer | Number of pages for this query |
+| `totalLive` | integer | Total live auctions in the index |
+| `lastUpdated` | number | Unix ms timestamp of the last Hypixel update |
+
+<Note>The raw base64 NBT (`item_bytes`) is dropped from the index to keep responses lean. `item_lore` and `extra` are retained.</Note>
+
+---
+
+## GET /v1/auctions/overview
+
+Global auction-house summary: most recently listed auctions, those ending soonest, the average price, and the available categories/tiers for building filter UIs.
+
+**Cache:** 30 seconds
+
+### Example
+
+```bash
+curl -H "X-API-Key: sk_your_key_here" \
+  "https://api.skytools.app/v1/auctions/overview"
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "recent": [ { "uuid": "...", "item_name": "...", "starting_bid": 1000000 } ],
+    "endingSoon": [ { "uuid": "...", "item_name": "...", "end": 1706100000000 } ],
+    "avgPrice": 12500000,
+    "totalLive": 41032,
+    "binCount": 28114,
+    "categories": ["accessories", "armor", "blocks", "consumables", "misc", "weapon"],
+    "tiers": ["common", "epic", "legendary", "mythic", "rare", "uncommon"],
+    "lastUpdated": 1706000000000,
+    "lastRefresh": 1706000005000
+  },
+  "meta": { "cached": false, "api_version": "v1" }
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `recent` | array | 5 most recently listed auctions (same shape as search results) |
+| `endingSoon` | array | 5 active auctions ending soonest |
+| `avgPrice` | number | Mean effective price across all live auctions |
+| `totalLive` | integer | Total live auctions in the index |
+| `binCount` | integer | How many of those are Buy It Now |
+| `categories` / `tiers` | array | Distinct categories and rarities currently listed |
+| `lastUpdated` | number | Unix ms timestamp of the last Hypixel update |
+| `lastRefresh` | number | Unix ms timestamp of the last index rebuild |

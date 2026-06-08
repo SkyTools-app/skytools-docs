@@ -21,6 +21,9 @@ Returns bazaar product data from the Hypixel API. Use the `mode` parameter to co
 | `mode` | string | `full` | Response mode: `full`, `list`, `item`, or `flips` |
 | `id` | string | — | Bazaar item ID (**required** when `mode=item`) |
 | `limit` | integer | `20` | Max results for `mode=flips` (1–100) |
+| `minPrice` | integer | `50000` | Minimum instant-sell price for `mode=flips` |
+| `tax` | number | `0.01125` | Bazaar sell tax used in margin math for `mode=flips` (0–0.1). Default assumes one level of the Bazaar Flipper perk; raise it (e.g. `0.0225` under Mayor Aura) to match your account. |
+| `budget` | integer | `5000000` | Reference coin budget used to probe order-book depth / position sizing for `mode=flips` |
 
 ---
 
@@ -148,7 +151,13 @@ curl -H "X-API-Key: sk_your_key_here" \
 
 ### mode=flips
 
-Returns items sorted by `spreadPercent`, filtered for items with sell price >= 50,000 coins and volume >= 10,000.
+Returns the top bazaar flip opportunities, ranked by a composite `score` rather than raw spread.
+
+<Note>
+**Changed June 2026.** Flips were previously sorted by `spreadPercent` and filtered only on sell price (≥ 50,000) and volume (≥ 10,000). They are now ranked by a composite `score` that blends **after-tax margin**, **real weekly liquidity**, **price stability** (trend signals), **demand pressure** (buy vs sell flow), and **order-book depth** — which surfaces genuinely flippable items instead of thin or manipulated walls. All previously returned fields are still present, so existing integrations keep working, but the **set of items and their ordering have changed**, and many new fields were added (see table below).
+</Note>
+
+Items are filtered to: instant-sell price ≥ `minPrice` (default 50,000), positive after-tax margin, after-tax margin ≤ 100% (drops manipulated spreads), weekly throughput ≥ 60,000 units, and at least 5 buy **and** 5 sell orders (a real two-sided market). Results are sorted by `score` descending.
 
 ```bash
 curl -H "X-API-Key: sk_your_key_here" \
@@ -160,6 +169,8 @@ curl -H "X-API-Key: sk_your_key_here" \
   "success": true,
   "data": {
     "count": 5,
+    "tax": 0.01125,
+    "refBudget": 5000000,
     "items": [
       {
         "id": "ENCHANTMENT_ULTIMATE_FATAL_TEMPO_1",
@@ -167,16 +178,49 @@ curl -H "X-API-Key: sk_your_key_here" \
         "buyPrice": 120000,
         "sellVolume": 50000,
         "buyVolume": 45000,
+        "sellOrders": 42,
+        "buyOrders": 60,
         "spread": 20000,
         "spreadPercent": 20.0,
         "sellMovingWeek": 5000000,
-        "buyMovingWeek": 4500000
+        "buyMovingWeek": 4500000,
+        "netMargin": 18650,
+        "netMarginPercent": 18.65,
+        "weeklyThroughput": 4500000,
+        "demandRatio": 0.9,
+        "depthAdjMarginPercent": 16.2,
+        "maxPositionCoins": 42000000,
+        "profitPerHour": 600160,
+        "score": 142.87,
+        "riskTier": "medium",
+        "trendSignal": "stable",
+        "changePercent24h": 2.3
       }
     ]
   },
   "meta": { "cached": false, "api_version": "v1" }
 }
 ```
+
+The top-level `tax` and `refBudget` echo back the values used for the calculation (the request value, or the default).
+
+| Field | Type | Description |
+|---|---|---|
+| `sellPrice` / `buyPrice` | number | Instant-sell / instant-buy price |
+| `sellOrders` / `buyOrders` | integer | Number of open sell / buy orders |
+| `spread` / `spreadPercent` | number | Raw gross spread and its percentage |
+| `sellMovingWeek` / `buyMovingWeek` | number | 7-day moving trade volume |
+| `netMargin` | number | After-tax profit per item: `buyPrice * (1 - tax) - sellPrice` |
+| `netMarginPercent` | number | `netMargin` as a percentage of `sellPrice` |
+| `weeklyThroughput` | number | Real liquidity floor: `min(buyMovingWeek, sellMovingWeek)` |
+| `demandRatio` | number | Weekly buy flow ÷ sell flow. `> 1` = demand-heavy, `< 1` = oversupplied |
+| `depthAdjMarginPercent` | number | After-tax margin that survives once you size up to `budget`, walking the order book |
+| `maxPositionCoins` | integer | Coins you can realistically deploy round-trip given current book depth |
+| `profitPerHour` | integer | Estimated coins/hour for a solo flipper (throughput × margin × realistic market capture) |
+| `score` | number | Composite ranking score (higher is better) — the default sort key |
+| `riskTier` | string | `low`, `medium`, or `high` — overall risk from volatility, liquidity, demand and depth |
+| `trendSignal` | string \| null | Price trend: `rising`, `falling`, `stable`, or `null` if no trend data |
+| `changePercent24h` | number \| null | 24-hour price change percent, or `null` if no trend data |
 
 ---
 
@@ -195,12 +239,19 @@ curl -H "X-API-Key: sk_your_key_here" \
 {
   "success": true,
   "data": {
+    "count": 1487,
     "trends": { ... },
-    "updated_at": "2026-03-05T12:00:00Z"
+    "computed_at": "2026-06-07T12:00:00Z"
   },
   "meta": { "cached": false, "api_version": "v1" }
 }
 ```
+
+| Field | Type | Description |
+|---|---|---|
+| `count` | integer | Number of items with trend signals |
+| `trends` | object | Map of item ID → trend data (`signal`, `sma7`, `sma24`, `emaShort`, `changePercent24h`) |
+| `computed_at` | string \| null | ISO timestamp of the last trend computation |
 
 <Note>Trend data is computed on-server from 5-minute bazaar snapshots. It includes price movement signals across multiple timeframes.</Note>
 

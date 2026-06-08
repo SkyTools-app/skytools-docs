@@ -213,6 +213,131 @@ curl -H "X-API-Key: sk_your_key_here" \
 
 ---
 
+## GET /v1/profile/:username/garden
+
+Returns the garden for a player's SkyBlock profile — crop milestones, unlocked plots, composter state and visitor data (raw Hypixel garden payload).
+
+**Cache:** 10 minutes
+
+### Query parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `profile_id` | string | — | Specific profile ID. If omitted, uses the selected profile. |
+
+### Example
+
+```bash
+curl -H "X-API-Key: sk_your_key_here" \
+  "https://api.skytools.app/v1/profile/Refraction/garden"
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "profileId": "a1b2c3d4e5f6",
+    "garden": { "garden_experience": 12345678, "unlocked_plots_ids": ["beginner_1"], "resources_collected": { ... } }
+  },
+  "meta": { "cached": false, "api_version": "v1" }
+}
+```
+
+<Note>If the profile has no garden created, `garden` is `null` (the request still succeeds with a `200`).</Note>
+
+---
+
+## GET /v1/profile/:username/auctions
+
+Returns the player's **own active auctions** on a SkyBlock profile (their listings, not the global auction house).
+
+**Cache:** 60 seconds
+
+### Query parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `profile_id` | string | — | Specific profile ID. If omitted, uses the selected profile. |
+
+### Example
+
+```bash
+curl -H "X-API-Key: sk_your_key_here" \
+  "https://api.skytools.app/v1/profile/Refraction/auctions"
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "profileId": "a1b2c3d4e5f6",
+    "auctions": [
+      {
+        "uuid": "abc123def456",
+        "item_name": "Hyperion",
+        "starting_bid": 900000000,
+        "highest_bid_amount": 0,
+        "bin": true,
+        "end": 1706100000000
+      }
+    ]
+  },
+  "meta": { "cached": false, "api_version": "v1" }
+}
+```
+
+<Note>Returns an empty `auctions` array when the player has no active listings on the profile.</Note>
+
+---
+
+## GET /v1/profile/resolve-usernames
+
+Batch reverse lookup: resolve up to 24 player UUIDs to their current usernames in one request. Useful for hydrating leaderboard rows, auction sellers, or guild members.
+
+**Cache:** 24 hours
+
+### Query parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `uuids` | string | — | Comma-separated list of UUIDs (with or without dashes), **max 24**. Invalid entries are dropped; duplicates are deduplicated. |
+
+### Example
+
+```bash
+curl -H "X-API-Key: sk_your_key_here" \
+  "https://api.skytools.app/v1/profile/resolve-usernames?uuids=b876ec32e396476ba1158438d83c67d4,5f4f4a1d..."
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "names": {
+      "b876ec32e396476ba1158438d83c67d4": "Refraction",
+      "5f4f4a1d...": null
+    }
+  },
+  "meta": { "cached": false, "api_version": "v1" }
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `names` | object | Map of dashless UUID → username, or `null` if the UUID could not be resolved |
+
+<Note>An empty or all-invalid `uuids` list returns `{ "names": {} }`. Passing more than 24 UUIDs returns a `400 BAD_REQUEST`.</Note>
+
+<Tip>Per-player bingo progress lives at [`GET /v1/profile/:username/bingo`](/endpoints/bingo). See the [Bingo](/endpoints/bingo) page.</Tip>
+
+---
+
 ### Errors (all profile endpoints)
 
 | Code | HTTP Status | When |

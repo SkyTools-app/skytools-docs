@@ -1,0 +1,302 @@
+---
+title: "Leaderboards"
+description: "Player and guild leaderboards across skills, dungeons, slayers, and more"
+keywords: ["leaderboard", "rankings", "guild leaderboard", "skill average", "catacombs", "networth", "player search"]
+---
+
+import AuthHeader from '/snippets/auth-header.mdx';
+
+<AuthHeader />
+
+SkyTools maintains an indexed leaderboard of players (and the guilds derived from them) across a wide range of categories. All leaderboard routes are read-only and served from a cached index on the data bridge.
+
+<Note>The index covers players linked through SkyTools rather than all of Hypixel. Use `GET /v1/leaderboard/search` to check whether a player is indexed.</Note>
+
+---
+
+## GET /v1/leaderboard/rankings
+
+Ranked player leaderboard for a single category and game mode.
+
+**Cache:** 2 minutes
+
+### Query parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `category` | string | `skill_average` | Leaderboard category — see [`/categories`](#get-v1-leaderboard-categories) |
+| `game_mode` | string | `normal` | `normal`, `ironman`, `stranded`, or `bingo` |
+| `page` | integer | `1` | Page number (1-indexed) |
+| `limit` | integer | `50` | Results per page (1–100) |
+
+### Example
+
+```bash
+curl -H "X-API-Key: sk_your_key_here" \
+  "https://api.skytools.app/v1/leaderboard/rankings?category=catacombs&limit=10"
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "category": "catacombs",
+    "game_mode": "normal",
+    "page": 1,
+    "limit": 10,
+    "total": 1842,
+    "total_pages": 185,
+    "players": [
+      {
+        "rank": 1,
+        "uuid": "b876ec32e396476ba1158438d83c67d4",
+        "username": "Refraction",
+        "profile_name": "Strawberry",
+        "game_mode": "normal",
+        "value": 569000000,
+        "last_updated": "2026-06-07T12:00:00Z"
+      }
+    ]
+  },
+  "meta": { "cached": false, "api_version": "v1" }
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `category` / `game_mode` | string | Echoed query |
+| `total` | integer | Total ranked players for this category/mode |
+| `total_pages` | integer | Number of pages |
+| `players[].rank` | integer | Global rank (1-indexed) |
+| `players[].value` | number | The category's metric value for this player |
+| `players[].profile_name` | string | The profile the stat is from |
+
+### Errors
+
+| Code | HTTP Status | When |
+|---|---|---|
+| `BAD_REQUEST` | 400 | Invalid `category` or `game_mode` |
+
+---
+
+## GET /v1/leaderboard/guilds
+
+Ranked guild leaderboard.
+
+**Cache:** 2 minutes
+
+### Query parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `sort` | string | `exp` | `exp`, `level`, `weekly_xp`, or `members` |
+| `page` | integer | `1` | Page number (1-indexed) |
+| `limit` | integer | `50` | Results per page (1–100) |
+
+### Example
+
+```bash
+curl -H "X-API-Key: sk_your_key_here" \
+  "https://api.skytools.app/v1/leaderboard/guilds?sort=weekly_xp&limit=10"
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "sort": "weekly_xp",
+    "page": 1,
+    "limit": 10,
+    "total": 312,
+    "total_pages": 32,
+    "guilds": [
+      {
+        "rank": 1,
+        "guild_id": "5e...",
+        "name": "Lucid",
+        "tag": "LUCID",
+        "tag_color": "AQUA",
+        "exp": 982340000,
+        "level": 42,
+        "member_count": 125,
+        "weekly_xp": 18400000,
+        "last_updated": "2026-06-07T12:00:00Z"
+      }
+    ]
+  },
+  "meta": { "cached": false, "api_version": "v1" }
+}
+```
+
+### Errors
+
+| Code | HTTP Status | When |
+|---|---|---|
+| `BAD_REQUEST` | 400 | Invalid `sort` value |
+
+---
+
+## GET /v1/leaderboard/player/:uuid
+
+Returns a single indexed player's stats and rankings, one entry per profile.
+
+**Cache:** 5 minutes
+
+### Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `uuid` | string | Player's Minecraft UUID — 32 hex chars, dashless |
+
+### Example
+
+```bash
+curl -H "X-API-Key: sk_your_key_here" \
+  "https://api.skytools.app/v1/leaderboard/player/b876ec32e396476ba1158438d83c67d4"
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "profiles": [
+      {
+        "uuid": "b876ec32e396476ba1158438d83c67d4",
+        "username": "Refraction",
+        "profile_name": "Strawberry",
+        "game_mode": "normal",
+        "skill_average": 58.2,
+        "catacombs_level": 50,
+        "networth_total": 12000000000,
+        "last_updated": "2026-06-07T12:00:00Z"
+      }
+    ]
+  },
+  "meta": { "cached": false, "api_version": "v1" }
+}
+```
+
+Each profile object contains the full set of indexed stat columns (skills, slayers, dungeon classes, mining powders, economy, collections, etc.).
+
+### Errors
+
+| Code | HTTP Status | When |
+|---|---|---|
+| `BAD_REQUEST` | 400 | UUID is not 32 hex characters |
+| `NOT_FOUND` | 404 | Player is not in the index |
+
+---
+
+## GET /v1/leaderboard/search
+
+Search the player index by username prefix. Handy for autocomplete and resolving whether a player is tracked.
+
+**Cache:** 1 minute
+
+### Query parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `q` | string | Username prefix — **minimum 2 characters** |
+
+### Example
+
+```bash
+curl -H "X-API-Key: sk_your_key_here" \
+  "https://api.skytools.app/v1/leaderboard/search?q=refr"
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "players": [
+      {
+        "uuid": "b876ec32e396476ba1158438d83c67d4",
+        "username": "Refraction",
+        "last_updated": "2026-06-07T12:00:00Z",
+        "is_active": true
+      }
+    ]
+  },
+  "meta": { "cached": false, "api_version": "v1" }
+}
+```
+
+### Errors
+
+| Code | HTTP Status | When |
+|---|---|---|
+| `BAD_REQUEST` | 400 | Query shorter than 2 characters |
+
+---
+
+## GET /v1/leaderboard/stats
+
+Index-wide statistics plus the list of available categories and guild sort options.
+
+**Cache:** 5 minutes
+
+### Example
+
+```bash
+curl -H "X-API-Key: sk_your_key_here" \
+  "https://api.skytools.app/v1/leaderboard/stats"
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "total_players": 9241,
+    "total_guilds": 312,
+    "last_collection": "2026-06-07T11:55:00Z",
+    "categories": ["skill_average", "total_skill_xp", "catacombs", "networth", "..."],
+    "guild_sort_options": ["exp", "level", "weekly_xp", "members"]
+  },
+  "meta": { "cached": false, "api_version": "v1" }
+}
+```
+
+---
+
+## GET /v1/leaderboard/categories
+
+Returns every available leaderboard category, grouped by type. Use these keys as the `category` parameter for `/rankings`.
+
+**Cache:** 1 hour
+
+### Example
+
+```bash
+curl -H "X-API-Key: sk_your_key_here" \
+  "https://api.skytools.app/v1/leaderboard/categories"
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "skills": ["skill_average", "total_skill_xp", "farming", "mining", "combat", "foraging", "fishing", "enchanting", "alchemy", "taming", "carpentry"],
+    "dungeons": ["catacombs", "catacombs_level", "healer", "mage", "berserk", "archer", "tank"],
+    "slayer": ["slayer_total", "zombie", "spider", "wolf", "enderman", "blaze", "vampire"],
+    "economy": ["networth", "bank", "purse"],
+    "mining": ["hotm", "mithril_powder", "gemstone_powder", "glacite_powder"],
+    "misc": ["skyblock_level", "fairy_souls", "pet_score", "bestiary", "collections", "minions", "kuudra"],
+    "guilds": ["exp", "level", "weekly_xp", "members"]
+  },
+  "meta": { "cached": false, "api_version": "v1" }
+}
+```

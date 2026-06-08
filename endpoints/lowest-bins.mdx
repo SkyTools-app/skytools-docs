@@ -10,9 +10,9 @@ import AuthHeader from '/snippets/auth-header.mdx';
 
 ## GET /v1/auctions/lowest-bins
 
-Returns the lowest BIN (Buy It Now) price for every item currently listed on the auction house. Scans up to 20 pages of auctions to find the cheapest listing for each item.
+Returns the lowest BIN (Buy It Now) price for every item currently listed on the auction house. Computed from a full in-memory index of the entire auction house, refreshed every ~60 seconds.
 
-**Cache:** 5 minutes
+**Cache:** 1 minute
 
 ### Query parameters
 
@@ -62,7 +62,8 @@ print(f"Cheapest Hyperion: {hyperion_price:,} coins")
       "Aspect of the Dragons": 15000000,
       "Livid Dagger": 30000000,
       "Necron's Handle": 450000000
-    }
+    },
+    "lastUpdated": 1706000000000
   },
   "meta": { "cached": true, "api_version": "v1" }
 }
@@ -71,5 +72,6 @@ print(f"Cheapest Hyperion: {hyperion_price:,} coins")
 | Field | Type | Description |
 |---|---|---|
 | `lowestBins` | object | Map of item display name to lowest BIN price in coins |
+| `lastUpdated` | number | Unix ms timestamp of the last Hypixel auction-house update |
 
 Keys are **item display names** (not internal IDs). Values are the lowest BIN price in coins as an integer.

@@ -1,0 +1,92 @@
+---
+title: "Money Methods"
+description: "Curated SkyBlock money-making methods with live coins/hour estimates"
+keywords: ["money making", "coins per hour", "cph", "money methods", "profit", "skyblock economy"]
+---
+
+import AuthHeader from '/snippets/auth-header.mdx';
+
+<AuthHeader />
+
+## GET /v1/money-methods
+
+Returns a curated list of SkyBlock money-making methods with coins/hour (`cph`) estimates. For methods backed by a bazaar item, `cph` is recomputed live from current bazaar prices; the rest fall back to hand-verified curated values.
+
+**Cache:** 1 minute
+
+### Query parameters
+
+None.
+
+### Example
+
+<CodeGroup>
+```bash cURL
+curl -H "X-API-Key: sk_your_key_here" \
+  "https://api.skytools.app/v1/money-methods"
+```
+
+```javascript JavaScript
+const response = await fetch("https://api.skytools.app/v1/money-methods", {
+  headers: { "X-API-Key": "sk_your_key_here" },
+});
+const { data } = await response.json();
+const top = data.methods.sort((a, b) => b.cph - a.cph)[0];
+console.log(`Top method: ${top.name} — ${top.cph.toLocaleString()} coins/hr`);
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "methods": [
+      {
+        "id": "gemstone",
+        "name": "Gemstone Mining (Crystal Hollows)",
+        "cat": "Mining",
+        "cph": 20100000,
+        "effort": "Active",
+        "capital": 0,
+        "sustain": 65,
+        "risks": ["bazaar", "crash", "update"],
+        "req": { "sblvl": 30, "skills": { "Mining": 24 }, "items": ["Divan's Drill"] },
+        "desc": "Mine Ruby/Jade/Amber and friends in the Crystal Hollows...",
+        "bazaarBasis": { "id": "FINE_RUBY_GEM", "unitsPerHour": 830 },
+        "calc": { "summary": "...", "inputs": [], "sources": [] },
+        "cphSource": "live",
+        "cphUpdatedAt": 1706000000000
+      }
+    ],
+    "updatedAt": 1706000000000,
+    "live": true,
+    "liveCount": 14
+  },
+  "meta": { "cached": false, "api_version": "v1" }
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `methods` | array | The curated method list |
+| `methods[].id` | string | Stable method identifier |
+| `methods[].name` | string | Display name |
+| `methods[].cat` | string | Category: `Combat`, `Slayers`, `Dungeons`, `Mining`, `Farming`, `Foraging`, `Fishing`, `Flipping`, or `AFK` |
+| `methods[].cph` | number | Estimated coins per hour |
+| `methods[].effort` | string | `Active`, `Semi-AFK`, or `AFK` |
+| `methods[].capital` | number | Up-front coins required to start |
+| `methods[].sustain` | number | Sustainability score (0–100) — how well the method holds up over time |
+| `methods[].risks` | array | Risk tags (e.g. `bazaar`, `rng`, `crash`, `nerf`, `seasonal`) |
+| `methods[].req` | object | Requirements: optional `sblvl`, `skills`, `networth`, `items` |
+| `methods[].desc` | string | Short description |
+| `methods[].bazaarBasis` | object? | Bazaar item the live `cph` is derived from (`id`, `unitsPerHour`), when applicable |
+| `methods[].calc` | object? | Calculation breakdown: `summary`, `inputs`, optional `assumptions`, `sources` |
+| `methods[].cphSource` | string? | `live` if `cph` was recomputed from current bazaar prices, else `curated` |
+| `methods[].cphUpdatedAt` | number? | Unix ms timestamp of the live `cph` computation |
+| `updatedAt` | number | Unix ms timestamp the dataset was assembled |
+| `live` | boolean | `true` if at least one method's `cph` was computed live |
+| `liveCount` | integer | How many methods had a live `cph` |
+
+<Note>If the bazaar is temporarily unreachable, every method falls back to its curated `cph` and `live` will be `false`.</Note>

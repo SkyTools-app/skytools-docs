@@ -1,0 +1,124 @@
+---
+title: "Bingo"
+description: "Active SkyBlock bingo event goals and per-player bingo progress"
+keywords: ["bingo", "bingo event", "bingo goals", "bingo card", "skyblock bingo", "event"]
+---
+
+import AuthHeader from '/snippets/auth-header.mdx';
+
+<AuthHeader />
+
+## GET /v1/bingo
+
+Returns the current bingo event definition — its goals, modifier and start/end times. Pair it with [`/v1/profile/:username/bingo`](#get-v1-profile-username-bingo) to track a player's progress against these goals.
+
+**Cache:** 1 hour
+
+### Example
+
+```bash
+curl -H "X-API-Key: sk_your_key_here" \
+  "https://api.skytools.app/v1/bingo"
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "lastUpdated": 1706000000000,
+    "id": 38,
+    "name": "June Bingo",
+    "start": 1706000000000,
+    "end": 1706600000000,
+    "modifier": "NORMAL",
+    "goals": [
+      {
+        "id": "collect_wheat",
+        "name": "Harvest Festival",
+        "lore": "Collect 256 Wheat.",
+        "requiredAmount": 256,
+        "tiers": [1, 10, 50],
+        "progress": 0.42
+      }
+    ]
+  },
+  "meta": { "cached": false, "api_version": "v1" }
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | integer | Bingo event ID (matches the `key` in a player's per-event progress) |
+| `name` | string | Event name |
+| `start` / `end` | number | Event start/end Unix ms timestamps |
+| `modifier` | string | Event modifier (e.g. `NORMAL`) |
+| `goals` | array | The event's goals |
+| `goals[].id` | string | Goal identifier |
+| `goals[].name` | string | Goal display name |
+| `goals[].lore` | string | Goal description |
+| `goals[].requiredAmount` | number | Target amount, when the goal is quantitative |
+| `goals[].tiers` | array | Tier thresholds for tiered goals |
+| `goals[].progress` | number | Community completion progress (0–1), when published by Hypixel |
+| `lastUpdated` | number | Unix ms timestamp of the last Hypixel update |
+
+---
+
+## GET /v1/profile/:username/bingo
+
+Returns a player's per-event bingo progress across every event they have participated in.
+
+**Cache:** 5 minutes
+
+### Path parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `username` | string | Minecraft username (1–16 chars, alphanumeric and underscores only) |
+
+### Example
+
+```bash
+curl -H "X-API-Key: sk_your_key_here" \
+  "https://api.skytools.app/v1/profile/Refraction/bingo"
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "uuid": "b876ec32e396476ba1158438d83c67d4",
+    "events": [
+      {
+        "key": 38,
+        "points": 420,
+        "completed_goals": ["collect_wheat", "kill_zombies"]
+      }
+    ]
+  },
+  "meta": { "cached": false, "api_version": "v1" }
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `uuid` | string | Player's Minecraft UUID |
+| `events` | array | One entry per bingo event the player joined |
+| `events[].key` | integer | Bingo event ID (matches `id` from `GET /v1/bingo`) |
+| `events[].points` | integer | Points earned in that event |
+| `events[].completed_goals` | array | IDs of goals the player completed |
+
+<Note>Returns an empty `events` array if the player has never participated in a bingo event.</Note>
+
+---
+
+### Errors
+
+| Code | HTTP Status | When |
+|---|---|---|
+| `BAD_REQUEST` | 400 | Invalid username format (per-player endpoint) |
+| `PLAYER_NOT_FOUND` | 404 | No Minecraft account exists with that username |
+| `TIMEOUT` | 503 | Upstream timed out and no cached data available |

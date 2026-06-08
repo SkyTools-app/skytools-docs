@@ -407,7 +407,7 @@ paths:
             type: string
             enum: [full, list, item, flips]
             default: full
-          description: "Response mode: `full` (all products), `list` (item IDs only), `item` (single item), `flips` (top spread items)"
+          description: "Response mode: `full` (all products), `list` (item IDs only), `item` (single item), `flips` (top flips ranked by a composite score)"
         - name: id
           in: query
           schema:
@@ -421,6 +421,26 @@ paths:
             maximum: 100
             default: 20
           description: Max results for mode=flips
+        - name: minPrice
+          in: query
+          schema:
+            type: integer
+            default: 50000
+          description: Minimum instant-sell price for mode=flips
+        - name: tax
+          in: query
+          schema:
+            type: number
+            minimum: 0
+            maximum: 0.1
+            default: 0.01125
+          description: Bazaar sell tax used in margin math for mode=flips
+        - name: budget
+          in: query
+          schema:
+            type: integer
+            default: 5000000
+          description: Reference coin budget used to probe order-book depth for mode=flips
       responses:
         "200":
           description: Bazaar data
@@ -462,11 +482,14 @@ paths:
                   data:
                     type: object
                     properties:
+                      count:
+                        type: integer
                       trends:
                         type: object
-                      updated_at:
+                      computed_at:
                         type: string
                         format: date-time
+                        nullable: true
                   meta:
                     $ref: "#/components/schemas/Meta"
         "401":
@@ -599,6 +622,162 @@ paths:
                         example:
                           Hyperion: 900000000
                           "Aspect of the Dragons": 15000000
+                      lastUpdated:
+                        type: integer
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /auctions/search:
+    get:
+      operationId: searchAuctions
+      summary: Search the auction house
+      description: Server-side search, filter, sort and pagination across the full auction house (in-memory index, refreshed ~every 60s).
+      tags: [Auctions]
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+          description: Search text (item name + reforge/attributes; color codes and symbols ignored)
+        - name: category
+          in: query
+          schema:
+            type: string
+          description: Filter by category (e.g. weapon, armor, accessories)
+        - name: tier
+          in: query
+          schema:
+            type: string
+          description: Filter by rarity (e.g. common, rare, epic, legendary, mythic)
+        - name: auctionType
+          in: query
+          schema:
+            type: string
+            enum: [all, bin, auction]
+            default: all
+          description: Auction type filter
+        - name: minPrice
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Minimum effective price (0 = no minimum)
+        - name: maxPrice
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Maximum effective price (0 = no maximum)
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [time, price, name]
+            default: time
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Page number (0-indexed)
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 60
+      responses:
+        "200":
+          description: Matching auctions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      auctions:
+                        type: array
+                        items:
+                          type: object
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      totalAuctions:
+                        type: integer
+                      totalPages:
+                        type: integer
+                      totalLive:
+                        type: integer
+                      lastUpdated:
+                        type: integer
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /auctions/overview:
+    get:
+      operationId: getAuctionsOverview
+      summary: Auction house overview
+      description: Global auction-house summary — recent and ending-soon auctions, average price, and available categories/tiers.
+      tags: [Auctions]
+      responses:
+        "200":
+          description: Auction overview
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      recent:
+                        type: array
+                        items:
+                          type: object
+                      endingSoon:
+                        type: array
+                        items:
+                          type: object
+                      avgPrice:
+                        type: number
+                      totalLive:
+                        type: integer
+                      binCount:
+                        type: integer
+                      categories:
+                        type: array
+                        items:
+                          type: string
+                      tiers:
+                        type: array
+                        items:
+                          type: string
+                      lastUpdated:
+                        type: integer
+                      lastRefresh:
+                        type: integer
                   meta:
                     $ref: "#/components/schemas/Meta"
         "401":
@@ -811,6 +990,195 @@ paths:
           $ref: "#/components/responses/RateLimited"
         "502":
           $ref: "#/components/responses/UpstreamError"
+        "503":
+          $ref: "#/components/responses/Timeout"
+  /profile/{username}/garden:
+    get:
+      operationId: getPlayerGarden
+      summary: Get player garden
+      description: Returns garden data (crops, plots, composter, visitors) for a player's SkyBlock profile. `garden` is null when none exists.
+      tags: [Profiles]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Minecraft username
+        - name: profile_id
+          in: query
+          schema:
+            type: string
+          description: Specific profile ID. If omitted, uses the selected profile.
+      responses:
+        "200":
+          description: Garden data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      profileId:
+                        type: string
+                      garden:
+                        type: object
+                        nullable: true
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/PlayerNotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/Timeout"
+  /profile/{username}/auctions:
+    get:
+      operationId: getPlayerAuctions
+      summary: Get a player's own auctions
+      description: Returns the player's own active auctions on a SkyBlock profile (their listings, not the global AH).
+      tags: [Profiles]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Minecraft username
+        - name: profile_id
+          in: query
+          schema:
+            type: string
+          description: Specific profile ID. If omitted, uses the selected profile.
+      responses:
+        "200":
+          description: The player's active auctions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      profileId:
+                        type: string
+                      auctions:
+                        type: array
+                        items:
+                          type: object
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/PlayerNotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/Timeout"
+  /profile/{username}/bingo:
+    get:
+      operationId: getPlayerBingo
+      summary: Get a player's bingo progress
+      description: Returns a player's per-event bingo progress across every event they have participated in.
+      tags: [Profiles]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Minecraft username
+      responses:
+        "200":
+          description: Per-event bingo progress
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      uuid:
+                        type: string
+                      events:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            key:
+                              type: integer
+                            points:
+                              type: integer
+                            completed_goals:
+                              type: array
+                              items:
+                                type: string
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/PlayerNotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/Timeout"
+  /profile/resolve-usernames:
+    get:
+      operationId: resolveUsernames
+      summary: Batch reverse UUID lookup
+      description: Resolve up to 24 player UUIDs to their current usernames in one request.
+      tags: [Profiles]
+      parameters:
+        - name: uuids
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Comma-separated UUIDs (with or without dashes), max 24. Invalid entries are dropped.
+      responses:
+        "200":
+          description: UUID to username map
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      names:
+                        type: object
+                        additionalProperties:
+                          type: string
+                          nullable: true
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "400":
+          description: More than 24 UUIDs supplied (`BAD_REQUEST`)
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
         "503":
           $ref: "#/components/responses/Timeout"
   /player/{username}:
@@ -1323,6 +1691,347 @@ paths:
       responses:
         "200":
           description: Recipe data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /money-methods:
+    get:
+      operationId: getMoneyMethods
+      summary: Get money-making methods
+      description: Curated SkyBlock money-making methods with coins/hour, recomputed live from current bazaar prices where applicable.
+      tags: [Game Data]
+      responses:
+        "200":
+          description: Money methods with live coins/hour
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      methods:
+                        type: array
+                        items:
+                          type: object
+                      updatedAt:
+                        type: integer
+                      live:
+                        type: boolean
+                      liveCount:
+                        type: integer
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /bingo:
+    get:
+      operationId: getActiveBingo
+      summary: Get the active bingo event
+      description: Returns the current bingo event definition — goals, modifier and start/end times.
+      tags: [Bingo]
+      responses:
+        "200":
+          description: Active bingo event
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      name:
+                        type: string
+                      start:
+                        type: integer
+                      end:
+                        type: integer
+                      modifier:
+                        type: string
+                      goals:
+                        type: array
+                        items:
+                          type: object
+                      lastUpdated:
+                        type: integer
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /leaderboard/rankings:
+    get:
+      operationId: getLeaderboardRankings
+      summary: Get player leaderboard
+      description: Ranked player leaderboard for a single category and game mode.
+      tags: [Leaderboards]
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+            default: skill_average
+          description: Leaderboard category (see /leaderboard/categories)
+        - name: game_mode
+          in: query
+          schema:
+            type: string
+            enum: [normal, ironman, stranded, bingo]
+            default: normal
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: Page number (1-indexed)
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+      responses:
+        "200":
+          description: Ranked players
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      category:
+                        type: string
+                      game_mode:
+                        type: string
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+                      total_pages:
+                        type: integer
+                      players:
+                        type: array
+                        items:
+                          type: object
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "400":
+          description: Invalid category or game_mode
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /leaderboard/guilds:
+    get:
+      operationId: getLeaderboardGuilds
+      summary: Get guild leaderboard
+      description: Ranked guild leaderboard.
+      tags: [Leaderboards]
+      parameters:
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [exp, level, weekly_xp, members]
+            default: exp
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+      responses:
+        "200":
+          description: Ranked guilds
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      sort:
+                        type: string
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+                      total_pages:
+                        type: integer
+                      guilds:
+                        type: array
+                        items:
+                          type: object
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "400":
+          description: Invalid sort value
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /leaderboard/player/{uuid}:
+    get:
+      operationId: getLeaderboardPlayer
+      summary: Get a single player's leaderboard stats
+      description: Returns an indexed player's stats and rankings, one entry per profile.
+      tags: [Leaderboards]
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-fA-F0-9]{32}$"
+          description: Player's Minecraft UUID (32 hex chars, dashless)
+      responses:
+        "200":
+          description: Player leaderboard stats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      profiles:
+                        type: array
+                        items:
+                          type: object
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "400":
+          description: Invalid UUID format
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Player is not indexed
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /leaderboard/search:
+    get:
+      operationId: searchLeaderboardPlayers
+      summary: Search indexed players
+      description: Search the player index by username prefix (min 2 characters).
+      tags: [Leaderboards]
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 2
+          description: Username prefix
+      responses:
+        "200":
+          description: Matching players
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      players:
+                        type: array
+                        items:
+                          type: object
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "400":
+          description: Query shorter than 2 characters
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /leaderboard/stats:
+    get:
+      operationId: getLeaderboardStats
+      summary: Leaderboard index statistics
+      description: Index-wide statistics plus available categories and guild sort options.
+      tags: [Leaderboards]
+      responses:
+        "200":
+          description: Index statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+  /leaderboard/categories:
+    get:
+      operationId: getLeaderboardCategories
+      summary: Available leaderboard categories
+      description: Every available leaderboard category, grouped by type. Use these keys as the `category` parameter for /leaderboard/rankings.
+      tags: [Leaderboards]
+      responses:
+        "200":
+          description: Categories grouped by type
           content:
             application/json:
               schema:
